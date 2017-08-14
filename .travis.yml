@@ -1,0 +1,56 @@
+sudo: false
+language: python
+cache: pip
+
+services:
+- docker
+
+python:
+- '2.7'
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
+- pypy
+- pypy-5.3.1
+
+matrix:
+  allow_failures:
+  - python: pypy
+  - python: pypy-5.3.1
+
+before_install:
+- docker pull pwntr/samba-alpine
+- pip install -U setuptools wheel
+
+install:
+- pip install .
+
+before_script:
+- pip install -r tests/requirements.txt
+
+script:
+- python setup.py test
+
+after_script:
+- codecov
+
+before_deploy:
+- python setup.py check -rms
+
+deploy:
+  provider: pypi
+  user: althonos
+  password:
+    secure: qcM7Q7KIH4U/idf7FRDmcVToTl7QbiSfNctJL6LYEOPxNdJSJADZCW73UsROTaCFHDZtmow+pXitnOwbREp7RpJsT6DVLGIuOdD1LMmxvDhZITc9mLeflfncmOmHcDk/QUHOPpmGpKGpeHIhLxwdd5pMHyrlQjkgWBRzstYLvbsoauV3pN4YD1OJSEUKyWDhXmZ3rcD5F3j/aiCKb05wVqIAdDJFmHJp4k9VNdVp+kmh8L4KAaaWVIYVSJ4LJznmgn+wYhtZdDWKTU7yYL94NR73bQU0Sd806d24TvJ7pqwaD6FvlXFmstXlnlKqO1jt81rPKpNw/wmUhNGGZB+YmSI7yz89rsBUnHCdiYY3lqpQr9XGgCcV0thQDtRqjUi8lGNcoih4Vb/YfChNuFKODVArZ5i1pZwrTQ9I+zWObKc/vZp1FHCewX+BoYzCRKgOxWZcM0Il28Y+7O7Bmzpjh+i18Su/a/7SjNKbkn7JKsSXzhgtTeWjBBQkDtzzB2mWLcUL0nLXaCZhbYJ9naTGiipv2o9NPU+kMZoiEUKhOV36lViMMazgSDZ6iiRbX+endQUG85tYtTBCJ1NWdXbBFZaInddy+vppLjL1XBSV45Aj/62gLyZ/XhmQzBaewrmmM42TKI9C6K8V3K+qsOmow1b6G8AgfwzTGktPcjWfn6o=
+  on:
+    tags: true
+    repo: althonos/fs.smbfs
+    python: 3.6
+  distributions: sdist bdist_wheel
+  server: https://upload.pypi.org/legacy/
+  skip_upload_docs: true
+
+notifications:
+  email:
+  - althonosdev@gmail.com
