@@ -41,7 +41,7 @@ class _TestSMBFS(fs.test.FSTestCases):
     def startSambaServer(cls):
         cls.samba_container = cls.docker_client.containers.run(
             "pwntr/samba-alpine",
-            detach=True, network_mode='host', tty=True,
+            detach=True, #network_mode='host', tty=True,
             volumes={cls.temp_dir: {'bind': '/shared', 'mode': 'rw'}}
         )
         time.sleep(20 if utils.CI else 5)
