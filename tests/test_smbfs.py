@@ -44,7 +44,7 @@ class _TestSMBFS(fs.test.FSTestCases):
             detach=True, network_mode='host', tty=True,
             volumes={cls.temp_dir: {'bind': '/shared', 'mode': 'rw'}}
         )
-        time.sleep(5)
+        time.sleep(20 if utils.CI else 5)
 
     @classmethod
     def stopSambaServer(cls):
