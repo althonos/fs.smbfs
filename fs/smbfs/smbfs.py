@@ -137,12 +137,14 @@ class SMBFS(FS):
             info['details'] = {'type': ResourceType.directory, 'size': 0}
         return Info(info)
 
-    def __init__(self, host, username='guest', passwd='', timeout=15, port=445):
+    def __init__(self, host, username='guest', passwd='', timeout=15,
+                 port=139, name_port=137, direct_tcp=False):
         super(SMBFS, self).__init__()
 
-        if self.RX_IP.match(host):
+        if self.RX_IP.match(host) or host == 'localhost':
             self._server_ip = ip = host
-            response = self.NETBIOS.queryIPForName(host, timeout=timeout)
+            response = self.NETBIOS.queryIPForName(
+                host, timeout=timeout, port=name_port)
             if not response:
                 raise errors.CreateFailed(
                     "could not get a name for IP: '{}'".format(host))
@@ -150,7 +152,8 @@ class SMBFS(FS):
 
         else:
             self._server_name = host
-            response = self.NETBIOS.queryName(host, '', timeout=timeout)
+            response = self.NETBIOS.queryName(
+                host, '', timeout=timeout, port=name_port)
             if not response:
                 raise errors.CreateFailed(
                     "could not get an IP for name: '{}'".format(host))
@@ -165,7 +168,7 @@ class SMBFS(FS):
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
             self._client_name, self._server_name,
-            is_direct_tcp = True,
+            is_direct_tcp=False,
         )
 
         if not self._smb.connect(ip, port, timeout=timeout):
