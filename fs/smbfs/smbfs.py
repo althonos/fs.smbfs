@@ -165,6 +165,7 @@ class SMBFS(FS):
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
             self._client_name, self._server_name,
+            is_direct_tcp = True,
         )
 
         if not self._smb.connect(ip, port, timeout=timeout):
@@ -243,16 +244,15 @@ class SMBFS(FS):
 
     def _scanshares(self, namespaces=None):
         sd = None
-        if _path in '/':
-            for device in self._smb.listShares():
-                if device.type == device.DISK_TREE:
-                    if 'access' in namespaces:
-                        sd = self._smb.getSecurity(device.name, '/')
-                    info = self._make_info_from_shared_file(
-                        self._smb.getAttributes(device.name, '/'),
-                        sd, namespaces)
-                    info.raw['basic']['name'] = device.name
-                    yield info
+        for device in self._smb.listShares():
+            if device.type == device.DISK_TREE:
+                if 'access' in namespaces:
+                    sd = self._smb.getSecurity(device.name, '/')
+                info = self._make_info_from_shared_file(
+                    self._smb.getAttributes(device.name, '/'),
+                    sd, namespaces)
+                info.raw['basic']['name'] = device.name
+                yield info
 
     def _scandir(self, path, namespaces=None):
         sd = None
