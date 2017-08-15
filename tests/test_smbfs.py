@@ -13,6 +13,7 @@ import docker
 
 import fs.test
 import fs.errors
+import fs.smbfs
 from fs.subfs import ClosingSubFS
 from fs.permissions import Permissions
 
@@ -42,8 +43,7 @@ class _TestSMBFS(fs.test.FSTestCases):
         cls.samba_container = cls.docker_client.containers.run(
             "pwntr/samba-alpine",
             detach=True, #network_mode='host', tty=True,
-            ports={'137/udp': 137, '138/udp': 138,
-                   '139/tcp': 139, '445/tcp': 445},
+            ports={'137/udp': 10137},#, '139/tcp': 139, '435/tcp': 435},
             volumes={cls.temp_dir: {'bind': '/shared', 'mode': 'rw'}}
         )
         time.sleep(15)
@@ -63,11 +63,17 @@ class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
 
     @staticmethod
     def make_fs():
-        return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
-
-
-class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
-
-    @staticmethod
-    def make_fs():
-        return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
+        return fs.smbfs.SMBFS(
+            'SAMBAALPINE', username='rio', passwd='letsdance',
+            port=445, name_port=10137,
+            direct_tcp=False,
+        ).opendir('/data', factory=ClosingSubFS)
+        #return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
+#
+#
+# class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
+#
+#     @staticmethod
+#     def make_fs():
+#
+#         #return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
