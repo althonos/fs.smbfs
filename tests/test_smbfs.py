@@ -13,9 +13,9 @@ import tempfile
 import docker
 
 import fs.test
-import fs.errors
 import fs.smbfs
 from fs.subfs import ClosingSubFS
+from fs.errors import PermissionDenied, ResourceNotFound
 from fs.permissions import Permissions
 
 from . import utils
@@ -41,34 +41,23 @@ class _TestSMBFS(fs.test.FSTestCases):
 
     @classmethod
     def startSambaServer(cls):
-
-        # cls.network = cls.docker_client.networks.create(
-        #     'smbfs', 'bridge', ipam=docker.types.IPAMConfig(
-        #         pool_configs=[docker.types.IPAMPool(subnet='172.18.0.0/16')]
-        #     ),
-        # )
-
         cls.samba_container = cls.docker_client.containers.run(
             "pwntr/samba-alpine", detach=True,
             ports={'139/tcp': 139, '137/udp': 137, '445/tcp': 445},
             tmpfs={'/shared': 'size=3G,uid=1000'},
         )
-
-        #cls.network.connect(cls.samba_container, ipv4_address='172.18.0.22')
-
         time.sleep(15)
 
     @classmethod
     def stopSambaServer(cls):
-        #cls.network.disconnect(cls.samba_container)
         cls.samba_container.kill()
         cls.samba_container.remove()
-        #cls.network.remove()
 
     @staticmethod
     def destroy_fs(fs):
         fs.close()
         del fs
+
 
 @utils.tag_on(sys.version_info < (3,), unittest.expectedFailure)
 class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
@@ -84,3 +73,28 @@ class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
     @staticmethod
     def make_fs():
         return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
+
+    def test_openbin_root(self):
+        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        self.assertRaises(ResourceNotFound, self.fs.openbin, '/abc')
+        self.assertRaises(PermissionDenied, self.fs.openbin, '/abc', 'w')
+
+    def test_makedir_root(self):
+        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        self.assertRaises(PermissionDenied, self.fs.makedir, '/abc')
+
+    def test_removedir_root(self):
+        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        self.assertRaises(PermissionDenied, self.fs.removedir, '/data')
+
+    def test_seek(self):
+        self.fs.settext('foo.txt', 'Hello, World !')
+
+        with self.fs.openbin('foo.txt') as handle:
+            self.assertRaises(ValueError, handle.seek, -2, 0)
+            self.assertRaises(ValueError, handle.seek, 2, 2)
+            self.assertRaises(ValueError, handle.seek, -2, 12)
+
+            self.assertEqual(handle.seek(2, 1), 2)
+            self.assertEqual(handle.seek(-1, 1), 1)
+            self.assertEqual(handle.seek(-2, 1), 0)
