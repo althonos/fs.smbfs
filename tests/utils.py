@@ -18,3 +18,6 @@ except ImportError:
     import mock                 # pylint: disable=unused-import
 
 CI = os.getenv('CI', '').lower() == 'true'
+
+def tag_on(condition, wrapper):
+    return wrapper if condition else (lambda func: func)

@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import re
+import sys
 import stat
 import time
 import shutil
@@ -41,43 +42,45 @@ class _TestSMBFS(fs.test.FSTestCases):
     @classmethod
     def startSambaServer(cls):
 
-        cls.network = cls.docker_client.networks.create(
-            'smbfs', 'bridge', ipam=docker.types.IPAMConfig(
-                pool_configs=[docker.types.IPAMPool(subnet='172.18.0.0/16')]
-            ),
-        )
+        # cls.network = cls.docker_client.networks.create(
+        #     'smbfs', 'bridge', ipam=docker.types.IPAMConfig(
+        #         pool_configs=[docker.types.IPAMPool(subnet='172.18.0.0/16')]
+        #     ),
+        # )
 
         cls.samba_container = cls.docker_client.containers.run(
-            "pwntr/samba-alpine", detach=True, 
+            "pwntr/samba-alpine", detach=True,
+            ports={'139/tcp': 139, '137/udp': 137, '445/tcp': 445},
             tmpfs={'/shared': 'size=3G,uid=1000'},
         )
 
-        cls.network.connect(cls.samba_container, ipv4_address='172.18.0.22')
+        #cls.network.connect(cls.samba_container, ipv4_address='172.18.0.22')
 
         time.sleep(15)
 
     @classmethod
     def stopSambaServer(cls):
-        cls.network.disconnect(cls.samba_container)
+        #cls.network.disconnect(cls.samba_container)
         cls.samba_container.kill()
         cls.samba_container.remove()
-        cls.network.remove()
+        #cls.network.remove()
 
     @staticmethod
     def destroy_fs(fs):
         fs.close()
         del fs
 
+@utils.tag_on(sys.version_info < (3,), unittest.expectedFailure)
+class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
 
-# class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
-#
-#     @staticmethod
-#     def make_fs():
-#         return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
+    @staticmethod
+    def make_fs():
+        return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
+
 
 
 class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
 
     @staticmethod
     def make_fs():
-        return fs.open_fs('smb://rio:letsdance@172.18.0.22/data')
+        return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
