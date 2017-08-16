@@ -42,16 +42,14 @@ class _TestSMBFS(fs.test.FSTestCases):
     def startSambaServer(cls):
 
         cls.network = cls.docker_client.networks.create(
-            'test_smbfs', 'bridge', ipam=docker.types.IPAMConfig(
+            'smbfs', 'bridge', ipam=docker.types.IPAMConfig(
                 pool_configs=[docker.types.IPAMPool(subnet='172.18.0.0/16')]
             ),
         )
 
         cls.samba_container = cls.docker_client.containers.run(
-            "pwntr/samba-alpine",
-            detach=True, #network_mode='host', tty=True,
-            ports={'137/udp': 10137},#, '139/tcp': 139, '435/tcp': 435},
-            volumes={cls.temp_dir: {'bind': '/shared', 'mode': 'rw'}}
+            "pwntr/samba-alpine", detach=True, 
+            tmpfs={'/shared': 'size=3G,uid=1000'},
         )
 
         cls.network.connect(cls.samba_container, ipv4_address='172.18.0.22')

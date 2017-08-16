@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
-import operator
 
 from .. import errors
 from ..path import join
@@ -21,7 +20,7 @@ class SMBFile(io.RawIOBase):
         self._smb = smb_fs._smb   # FIXME: clone the connection instead of using it multiple times
         self._share = share
         self._smb_path = smb_path
-        self._position = operator.length_hint(self) if mode.appending else 0
+        self._position = self.__length_hint__() if mode.appending else 0
 
         if mode.truncate:
             self.truncate(0)
@@ -67,7 +66,7 @@ class SMBFile(io.RawIOBase):
         elif whence == Seek.end:
             if offset > 0:
                 raise ValueError("Positive seek position {}".format(offset))
-            self._position = max(0, operator.length_hint(self) + offset)
+            self._position = max(0, self.__length_hint__() + offset)
 
         else:
             raise ValueError(
@@ -95,7 +94,7 @@ class SMBFile(io.RawIOBase):
 
     def truncate(self, pos=None):
         pos = pos or self._position
-        length = operator.length_hint(self)
+        length = self.__length_hint__()
 
         self.seek(0)
 
