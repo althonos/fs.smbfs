@@ -40,18 +40,30 @@ class _TestSMBFS(fs.test.FSTestCases):
 
     @classmethod
     def startSambaServer(cls):
+
+        cls.network = cls.docker_client.networks.create(
+            'test_smbfs', 'bridge', ipam=docker.types.IPAMConfig(
+                pool_configs=[docker.types.IPAMPool(subnet='172.18.0.0/16')]
+            ),
+        )
+
         cls.samba_container = cls.docker_client.containers.run(
             "pwntr/samba-alpine",
             detach=True, #network_mode='host', tty=True,
             ports={'137/udp': 10137},#, '139/tcp': 139, '435/tcp': 435},
             volumes={cls.temp_dir: {'bind': '/shared', 'mode': 'rw'}}
         )
+
+        cls.network.connect(cls.samba_container, ipv4_address='172.18.0.22')
+
         time.sleep(15)
 
     @classmethod
     def stopSambaServer(cls):
+        cls.network.disconnect(cls.samba_container)
         cls.samba_container.kill()
         cls.samba_container.remove()
+        cls.network.remove()
 
     @staticmethod
     def destroy_fs(fs):
@@ -59,21 +71,15 @@ class _TestSMBFS(fs.test.FSTestCases):
         del fs
 
 
-class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
-
-    @staticmethod
-    def make_fs():
-        return fs.smbfs.SMBFS(
-            'SAMBAALPINE', username='rio', passwd='letsdance',
-            port=445, name_port=10137,
-            direct_tcp=False,
-        ).opendir('/data', factory=ClosingSubFS)
-        #return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
-#
-#
-# class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
+# class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
 #
 #     @staticmethod
 #     def make_fs():
-#
-#         #return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
+#         return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
+
+
+class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
+
+    @staticmethod
+    def make_fs():
+        return fs.open_fs('smb://rio:letsdance@172.18.0.22/data')
