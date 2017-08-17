@@ -27,6 +27,32 @@ __all__ = ['SMBFS']
 
 
 class SMBFS(FS):
+    """A filesystem over SMB.
+
+    Arguments:
+        host (str): the IP or NetBIOS hostname of the server.
+        username (str): the username to connect with. Use `None` to
+            connect anonymously. **[default: None]**
+        passwd (str): the password to connect with. Set to `None` to connect
+            anonymously. **[default: None]**
+        timeout (int): the timeout of network operations, in seconds. Used for
+            both NetBIOS and SMB communications. **[default: 15]**
+        port (int): the port the SMB server is listening to. Often ``139`` for
+            SMB over NetBIOS, sometimes ``445`` for an SMB server over direct
+            TCP. **[default: 139]**
+        name_port (int): the port the NetBIOS naming service is listening on.
+            **[default: 137]**
+        direct_tcp (int): set to True to attempt to connect directly to the
+            server using TCP instead of NetBIOS. **[default: False]**
+
+    Raises:
+        `fs.errors.CreateFailed`: if the filesystem could not be created.
+
+    Example:
+        >>> import fs
+        >>> smb_fs = fs.open_fs('smb://SOMESERVER/share')
+
+    """
 
     _meta = {
         'case_insensitive': True,
@@ -43,6 +69,17 @@ class SMBFS(FS):
 
     @classmethod
     def _make_info_from_shared_file(cls, shared_file, sd=None, namespaces=None):
+        """Translate a `smb.base.SharedFile` object to a raw info `dict`.
+
+        Note:
+            The supported namespaces are:
+            * ``access`` (using an approximative *Windows access* to
+              *UNIX permissions* translation)
+            * ``basic``
+            * ``details``
+            * ``smb`` (using the SMB file attributes)
+
+        """
         namespaces = namespaces or ()
 
         info = {'basic': {
@@ -90,6 +127,24 @@ class SMBFS(FS):
 
     @classmethod
     def _make_access_from_sd(cls, sd):
+        """Translate a `SecurityDescriptor` object to a raw access `dict`.
+
+        Arguments:
+            sd (smb.security_descriptors.SecurityDescriptor): the security
+                descriptors obtained through SMB.
+
+        Note:
+            Since Windows (and as such, SMB) do not handle the permissions the
+            way UNIX does, the permissions here are translated as such:
+                * ``user`` mode is taken from the *read* / *write* / *execute*
+                  access descriptors of the user owning the resource.
+                * ``group`` mode is taken from the *read* / *write* / *execute*
+                  access descriptors of the group owning the resource.
+                * ``other`` mode uses the permissions of the **Everyone** group,
+                  which means sometimes an user could be denied access to a
+                  file Windows technically allows to open (since there is no
+                  such thing as *other* groups in Windows).
+        """
         access = {'gid': sd.group, 'uid': sd.owner}
 
         # Extract Access Control Entries corresponding to
@@ -131,16 +186,24 @@ class SMBFS(FS):
 
     @classmethod
     def _make_root_info(cls, namespaces=None):
+        """Create an `fs.info.Info` instance for the root directory.
+
+        Arguments:
+            namespaces (collections.Container): the namespaces to return
+                info about. Only ``basic`` and a subset of ``details`` are
+                supported.
+        """
         namespaces = namespaces or set()
         info = {'basic': {'name': '', 'is_dir': True}}
         if 'details' in namespaces:
             info['details'] = {'type': ResourceType.directory, 'size': 0}
         return Info(info)
 
-    def __init__(self, host, username='guest', passwd='', timeout=15,
+    def __init__(self, host, username=None, passwd=None, timeout=15,
                  port=139, name_port=137, direct_tcp=False):
         super(SMBFS, self).__init__()
 
+        # If given an IP: find the SMB host name
         if self.RX_IP.match(host) or host == 'localhost':
             self._server_ip = ip = host
             response = self.NETBIOS.queryIPForName(
@@ -150,6 +213,7 @@ class SMBFS(FS):
                     "could not get a name for IP: '{}'".format(host))
             self._server_name = response[0]
 
+        # If given an hostname: find the IP
         else:
             self._server_name = host
             response = self.NETBIOS.queryName(
@@ -162,8 +226,8 @@ class SMBFS(FS):
         self._timeout = timeout
         self._server_port = port
         self._client_name = socket.gethostname()
-        self._username = username
-        self._password = passwd
+        self._username = username or 'guest'
+        self._password = passwd or ''
 
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
@@ -217,6 +281,8 @@ class SMBFS(FS):
 
         _mode.validate_bin()
 
+        # TODO: check for permissions before opening the file
+
         if self.exists(_path):
             if not self.isfile(path):
                 raise errors.FileExpected(path)
@@ -250,6 +316,14 @@ class SMBFS(FS):
 
 
     def _scanshares(self, namespaces=None):
+        """Iterate over the shares in the root directory.
+
+        Arguments:
+            namespaces (collections.Container): the namespaces to fetch for
+                yielded `fs.info.Info`. Supports the namespaces supported by
+                `SMBFS._make_info_from_shared_file`. Defaults to ``basic``
+                only.
+        """
         sd = None
         for device in self._smb.listShares():
             if device.type == device.DISK_TREE:
@@ -262,6 +336,15 @@ class SMBFS(FS):
                 yield info
 
     def _scandir(self, path, namespaces=None):
+        """Iterate over the resources in a directory.
+
+        Arguments:
+            path (str): the path to the directory.
+            namespaces (collections.Container): the namespaces to fetch for
+                yielded `fs.info.Info`. Supports the namespaces supported by
+                `SMBFS._make_info_from_shared_file`. Defaults to ``basic``
+                only.
+        """
         sd = None
         if self.isfile(path):
             raise errors.DirectoryExpected(path)
@@ -336,4 +419,4 @@ class SMBFS(FS):
         if not self.exists(_path):
             raise errors.ResourceNotFound(path)
 
-        # NB: pysmb doesn't seem to support setting attributes.
+        # TODO ? pysmb doesn't seem to support setting attributes.

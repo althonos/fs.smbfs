@@ -13,11 +13,21 @@ __all__ = ['SMBFile']
 
 
 class SMBFile(io.RawIOBase):
+    """A file on an SMB server.
+    """
 
     def __init__(self, smb_fs, share, smb_path, mode):
+        """Create an `SMBFile` instance.
+
+        Arguments:
+            smb_fs (SMBFS): the SMB filesystem this file is accessed from.
+            share (str): the name of the share this file is located on.
+            smb_path (str): the path to the resource on the share.
+            mode (fs.mode.Mode): the mode the file is opened with.
+        """
         self._fs = smb_fs
         self._mode = mode
-        self._smb = smb_fs._smb   # FIXME: clone the connection instead of using it multiple times
+        self._smb = smb_fs._smb   # TODO: clone the connection instead of using it multiple times
         self._share = share
         self._smb_path = smb_path
         self._position = self.__length_hint__() if mode.appending else 0
