@@ -25,6 +25,12 @@ from . import utils
 class _TestSMBFS(fs.test.FSTestCases):
 
     @classmethod
+    def serverHasStarted(cls):
+        s = b"daemon 'smbd' finished starting up and ready to serve connections"
+        cls.samba_container.update()
+        return s in cls.samba_container.logs()
+
+    @classmethod
     def setUpClass(cls):
         cls.docker_client = docker.from_env(version='auto')
         cls.temp_dir = tempfile.mkdtemp()
@@ -42,11 +48,12 @@ class _TestSMBFS(fs.test.FSTestCases):
     @classmethod
     def startSambaServer(cls):
         cls.samba_container = cls.docker_client.containers.run(
-            "pwntr/samba-alpine", detach=True,
+            "pwntr/samba-alpine", detach=True, tty=True,
             ports={'139/tcp': 139, '137/udp': 137, '445/tcp': 445},
             tmpfs={'/shared': 'size=3G,uid=1000'},
         )
-        time.sleep(15)
+        while not cls.serverHasStarted():
+            time.sleep(1)
 
     @classmethod
     def stopSambaServer(cls):
