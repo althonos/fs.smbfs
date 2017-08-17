@@ -53,7 +53,7 @@ class _TestSMBFS(fs.test.FSTestCases):
             tmpfs={'/shared': 'size=3G,uid=1000'},
         )
         while not cls.serverHasStarted():
-            time.sleep(3)
+            time.sleep(4)
 
     @classmethod
     def stopSambaServer(cls):
