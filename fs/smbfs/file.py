@@ -1,4 +1,6 @@
 # coding: utf-8
+"""Implementation of `SMBFile`.
+"""
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -37,16 +39,16 @@ class SMBFile(io.RawIOBase):
         elif mode.writing:
             self.write(b'')
 
-    def __length_hint__(self):
+    def __length_hint__(self):  # noqa: D102
         try:
             return self._fs.getsize(join(self._share, self._smb_path))
         except errors.ResourceNotFound:
             return 0
 
-    def readable(self):
+    def readable(self):  # noqa: D102
         return self._mode.reading
 
-    def read(self, size=-1):
+    def read(self, size=-1):  # noqa: D102
         if not self._mode.reading:
             raise IOError('File not open for reading')
         handle = io.BytesIO()
@@ -57,13 +59,13 @@ class SMBFile(io.RawIOBase):
         self._position += bytes_read
         return handle.getvalue()
 
-    def seekable(self):
+    def seekable(self):  # noqa: D102
         return True
 
-    def tell(self):
+    def tell(self):  # noqa: D102
         return self._position
 
-    def seek(self, offset, whence=Seek.set):
+    def seek(self, offset, whence=Seek.set):  # noqa: D102
 
         if whence == Seek.set:
             if offset < 0:
@@ -87,10 +89,10 @@ class SMBFile(io.RawIOBase):
 
         return self._position
 
-    def writable(self):
+    def writable(self):  # noqa: D102
         return self._mode.writing
 
-    def write(self, data):
+    def write(self, data):  # noqa: D102
         if not self._mode.writing:
             raise IOError('File not open for writing')
         new_position = self._smb.storeFileFromOffset(
@@ -102,7 +104,7 @@ class SMBFile(io.RawIOBase):
         self._position = new_position
         return written_bytes
 
-    def truncate(self, pos=None):
+    def truncate(self, pos=None):  # noqa: D102
         pos = pos or self._position
         length = self.__length_hint__()
 

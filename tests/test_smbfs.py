@@ -2,9 +2,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import re
 import sys
-import stat
 import time
 import shutil
 import unittest
@@ -14,21 +12,13 @@ import docker
 
 import fs.test
 import fs.smbfs
-from fs.subfs import ClosingSubFS
 from fs.errors import PermissionDenied, ResourceNotFound
-from fs.permissions import Permissions
 
 from . import utils
 
 
 @unittest.skipUnless(utils.CI or utils.DOCKER, "docker service unreachable.")
 class _TestSMBFS(fs.test.FSTestCases):
-
-    @classmethod
-    def serverHasStarted(cls):
-        s = b"daemon 'smbd' finished starting up and ready to serve connections"
-        cls.samba_container.update()
-        return s in cls.samba_container.logs()
 
     @classmethod
     def setUpClass(cls):

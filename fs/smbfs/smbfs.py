@@ -1,4 +1,6 @@
 # coding: utf-8
+"""Implementation of `SMBFS`.
+"""
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -103,7 +105,6 @@ class SMBFS(FS):
                 name: bool(shared_file.file_attributes & attr)
                     for name, attr in {
                         'archive': smb.smb_constants.ATTR_ARCHIVE,
-                        'hidden': smb.smb_constants.ATTR_HIDDEN,
                         'compressed': smb.smb_constants.ATTR_COMPRESSED,
                         'directory': smb.smb_constants.ATTR_DIRECTORY,
                         'encrypted': smb.smb_constants.ATTR_ENCRYPTED,
@@ -200,7 +201,7 @@ class SMBFS(FS):
         return Info(info)
 
     def __init__(self, host, username=None, passwd=None, timeout=15,
-                 port=139, name_port=137, direct_tcp=False):
+                 port=139, name_port=137, direct_tcp=False):  # noqa: D102
         super(SMBFS, self).__init__()
 
         # If given an IP: find the SMB host name
@@ -243,7 +244,7 @@ class SMBFS(FS):
                 if share.type == share.DISK_TREE
         }
 
-    def makedir(self, path, permissions=None, recreate=False):
+    def makedir(self, path, permissions=None, recreate=False):  # noqa: D102
         _path = self.validatepath(path)
 
         if _path in '/':
@@ -275,7 +276,7 @@ class SMBFS(FS):
 
         return self.opendir(_path)
 
-    def openbin(self, path, mode='r', buffering=-1, **options):
+    def openbin(self, path, mode='r', buffering=-1, **options):  # noqa: D102
         _path = self.validatepath(path)
         _mode = Mode(mode)
 
@@ -301,10 +302,10 @@ class SMBFS(FS):
         return SMBFile(self, share, smb_path, _mode)
 
 
-    def listdir(self, path):
+    def listdir(self, path):  # noqa: D102
         return [f.name for f in self.scandir(path)]
 
-    def scandir(self, path, namespaces=None, page=None):
+    def scandir(self, path, namespaces=None, page=None):  # noqa: D102
         _path = self.validatepath(path)
         namespaces = namespaces or ()
         iter_info = self._scanshares(namespaces) if _path in '/' \
@@ -359,7 +360,7 @@ class SMBFS(FS):
                 yield self._make_info_from_shared_file(
                     shared_file, sd, namespaces)
 
-    def remove(self, path):
+    def remove(self, path):  # noqa: D102
         _path = self.validatepath(path)
 
         if self.gettype(_path) is not ResourceType.file:
@@ -368,7 +369,7 @@ class SMBFS(FS):
         share, smb_path = utils.split_path(_path)
         self._smb.deleteFiles(share, smb_path)
 
-    def removedir(self, path):
+    def removedir(self, path):  # noqa: D102
         _path = self.validatepath(path)
 
         if _path in '/':
@@ -387,7 +388,7 @@ class SMBFS(FS):
 
         self._smb.deleteDirectory(share, smb_path)
 
-    def getinfo(self, path, namespaces=None):
+    def getinfo(self, path, namespaces=None):  # noqa: D102
         _path = self.validatepath(path)
         namespaces = namespaces or ()
         sd = None
@@ -413,7 +414,7 @@ class SMBFS(FS):
 
         return info
 
-    def setinfo(self, path, info):
+    def setinfo(self, path, info):  # noqa: D102
         _path = self.validatepath(path)
 
         if not self.exists(_path):

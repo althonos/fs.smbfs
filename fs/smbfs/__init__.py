@@ -1,4 +1,6 @@
 # coding: utf-8
+"""Pyfilesystem2 over SMB using pysmb.
+"""
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
