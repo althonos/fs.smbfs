@@ -18,7 +18,7 @@ from . import utils
 
 
 @unittest.skipUnless(utils.CI or utils.DOCKER, "docker service unreachable.")
-class _TestSMBFS(fs.test.FSTestCases):
+class _TestSMBFS(object):
 
     @classmethod
     def setUpClass(cls):
@@ -32,7 +32,7 @@ class _TestSMBFS(fs.test.FSTestCases):
         shutil.rmtree(cls.temp_dir)
 
     def setUp(self):
-        super(_TestSMBFS, self).setUp()
+        self.fs = self.make_fs()
         self.fs.removetree("/")
 
     @classmethod
@@ -56,34 +56,40 @@ class _TestSMBFS(fs.test.FSTestCases):
 
 
 @utils.tag_on(sys.version_info < (3,), unittest.expectedFailure)
-class TestSMBFS_fromHostname(_TestSMBFS, unittest.TestCase):
+class TestSMBOpenerWithHost(_TestSMBFS, fs.test.FSTestCases, unittest.TestCase):
 
     @staticmethod
     def make_fs():
         return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
 
-
-
-class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
+class TestSMBOpenerWithIP(_TestSMBFS, fs.test.FSTestCases, unittest.TestCase):
 
     @staticmethod
     def make_fs():
         return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
 
-    def test_openbin_root(self):
+
+class TestSMBFS(_TestSMBFS, unittest.TestCase):
+
+    def setUp(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+
+    def test_write_denied(self):
+        self.fs = fs.open_fs('smb://127.0.0.1/data')
+        self.assertRaises(PermissionDenied, self.fs.openbin, '/test.txt', 'w')
+
+    def test_openbin_root(self):
         self.assertRaises(ResourceNotFound, self.fs.openbin, '/abc')
         self.assertRaises(PermissionDenied, self.fs.openbin, '/abc', 'w')
 
     def test_makedir_root(self):
-        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
         self.assertRaises(PermissionDenied, self.fs.makedir, '/abc')
 
     def test_removedir_root(self):
-        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
         self.assertRaises(PermissionDenied, self.fs.removedir, '/data')
 
     def test_seek(self):
+        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
         self.fs.settext('foo.txt', 'Hello, World !')
 
         with self.fs.openbin('foo.txt') as handle:
@@ -94,3 +100,5 @@ class TestSMBFS_fromIP(_TestSMBFS, unittest.TestCase):
             self.assertEqual(handle.seek(2, 1), 2)
             self.assertEqual(handle.seek(-1, 1), 1)
             self.assertEqual(handle.seek(-2, 1), 0)
+
+        self.fs.remove('foo.txt')

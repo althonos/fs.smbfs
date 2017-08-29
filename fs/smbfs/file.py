@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 
 import io
 
+import smb.smb_structs
+
 from .. import errors
 from ..path import join
 from ..enums import Seek
@@ -34,10 +36,15 @@ class SMBFile(io.RawIOBase):
         self._smb_path = smb_path
         self._position = self.__length_hint__() if mode.appending else 0
 
-        if mode.truncate:
-            self.truncate(0)
-        elif mode.writing:
-            self.write(b'')
+        try:
+            if mode.truncate:
+                self.truncate(0)
+            elif mode.writing:
+                self.write(b'')
+            if mode.reading:
+                self.read(0)
+        except smb.smb_structs.OperationFailure as exc:
+            raise errors.PermissionDenied('/'.join([share, smb_path]), exc=exc)
 
     def __length_hint__(self):  # noqa: D102
         try:
