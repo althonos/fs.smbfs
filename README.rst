@@ -95,7 +95,7 @@ Otherwise, use the ``SMBFS`` constructor:
 
 .. code:: python
 
-    import fs
+    import fs.smbfs
     smb_fs = fs.smbfs.SMBFS(
       host,       # name or IP of the SMB server host
       username,   # username to connect with,
