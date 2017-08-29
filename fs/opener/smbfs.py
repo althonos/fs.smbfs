@@ -5,25 +5,25 @@ from __future__ import absolute_import
 from .base import Opener
 from ..subfs import ClosingSubFS
 
-#__license__ = "LGPL-2.1+"
-#__copyright__ = "Copyright (c) 2017 Martin Larralde"
-#__author__ = "Martin Larralde <martin.larralde@ens-cachan.fr>"
-#__version__ = 'dev'
+__license__ = "MIT"
+__copyright__ = "Copyright (c) 2017 Martin Larralde"
+__author__ = "Martin Larralde <martin.larralde@ens-cachan.fr>"
+__version__ = 'dev'
 
 
 # Dynamically get the version of the main module
-# try:
-#     _name = __name__.replace('.opener', '')
-#     import pkg_resources
-#     __version__ = pkg_resources.get_distribution(_name).version
-# except Exception:
-#     pkg_resources = None
-# finally:
-#     del pkg_resources
+try:
+    import pkg_resources
+    _name = __name__.replace('.opener', '')
+    __version__ = pkg_resources.get_distribution(_name).version
+except Exception:
+    pkg_resources = None
+finally:
+    del pkg_resources
 
 
 class SMBOpener(Opener):
-    protocols = ['smb', 'samba', 'cifs']
+    protocols = ['smb', 'cifs']
 
     @staticmethod
     def open_fs(fs_url, parse_result, writeable, create, cwd):
