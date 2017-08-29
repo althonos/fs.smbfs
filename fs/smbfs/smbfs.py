@@ -66,7 +66,7 @@ class SMBFS(FS):
         'virtual': False,
     }
 
-    RX_IP = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+    #: The client used to communicate with the NetBIOS naming service.
     NETBIOS = nmb.NetBIOS.NetBIOS()
 
     @classmethod
@@ -205,7 +205,7 @@ class SMBFS(FS):
         super(SMBFS, self).__init__()
 
         # If given an IP: find the SMB host name
-        if self.RX_IP.match(host) or host == 'localhost':
+        if utils.is_ip(host) or host == 'localhost':
             self._server_ip = ip = host
             response = self.NETBIOS.queryIPForName(
                 host, timeout=timeout, port=name_port)
