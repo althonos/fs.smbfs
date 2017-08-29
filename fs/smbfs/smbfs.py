@@ -301,9 +301,39 @@ class SMBFS(FS):
             raise errors.PermissionDenied("cannot open file in '/'")
         return SMBFile(self, share, smb_path, _mode)
 
-
     def listdir(self, path):  # noqa: D102
         return [f.name for f in self.scandir(path)]
+
+    def move(self, src_path, dst_path, overwrite=False):  # noqa: D102
+        _src_path = self.validatepath(src_path)
+        _dst_path = self.validatepath(dst_path)
+
+        _src_share, _src_smb_path = utils.split_path(_src_path)
+        _dst_share, _dst_smb_path = utils.split_path(_dst_path)
+
+        if not self.gettype(src_path) is ResourceType.file:
+            raise errors.FileExpected(src_path)
+
+        # Cannot rename across shares
+        if _src_share != _dst_share: # pragma: no cover
+            super(SMBFS, self).move(src_path, dst_path, overwrite=overwrite)
+
+        # Rename in the same share
+        else:
+
+            # Check the parent of dst_path exists and is not a file
+            if not self.gettype(dirname(dst_path)) is ResourceType.directory:
+                raise errors.DirectoryExpected(dirname(dst_path))
+
+            # Check the destination does not exist
+            if self.exists(dst_path):
+                if not overwrite:
+                    raise errors.DestinationExists(dst_path)
+                else:
+                    self.remove(dst_path)
+
+            self._smb.rename(
+                _src_share, _src_smb_path, _dst_smb_path, timeout=self._timeout)
 
     def scandir(self, path, namespaces=None, page=None):  # noqa: D102
         _path = self.validatepath(path)
@@ -314,7 +344,6 @@ class SMBFS(FS):
             start, end = page
             iter_info = itertools.islice(iter_info, start, end)
         return iter_info
-
 
     def _scanshares(self, namespaces=None):
         """Iterate over the shares in the root directory.
