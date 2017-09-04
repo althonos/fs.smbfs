@@ -296,7 +296,6 @@ class SMBFS(FS):
                 raise errors.FileExpected(path)
 
         share, smb_path = utils.split_path(_path)
-        print([share, smb_path])
         if not smb_path:
             raise errors.PermissionDenied("cannot open file in '/'")
         return SMBFile(self, share, smb_path, _mode)
