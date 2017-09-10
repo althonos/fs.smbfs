@@ -34,7 +34,7 @@ class SMBFile(io.RawIOBase):
         self._smb = smb_fs._smb   # TODO: clone the connection instead of using it multiple times
         self._share = share
         self._smb_path = smb_path
-        self._position = self.__length_hint__() if mode.appending else 0
+        self._position = self._size() if mode.appending else 0
 
         try:
             if mode.truncate:
@@ -46,7 +46,9 @@ class SMBFile(io.RawIOBase):
         except smb.smb_structs.OperationFailure as exc:
             raise errors.PermissionDenied('/'.join([share, smb_path]), exc=exc)
 
-    def __length_hint__(self):  # noqa: D102
+    def _size(self):
+        """Return the number of bytes in the file.
+        """
         try:
             return self._fs.getsize(join(self._share, self._smb_path))
         except errors.ResourceNotFound:
@@ -85,7 +87,7 @@ class SMBFile(io.RawIOBase):
         elif whence == Seek.end:
             if offset > 0:
                 raise ValueError("Positive seek position {}".format(offset))
-            self._position = max(0, self.__length_hint__() + offset)
+            self._position = max(0, self._size() + offset)
 
         else:
             raise ValueError(
@@ -113,14 +115,14 @@ class SMBFile(io.RawIOBase):
 
     def truncate(self, pos=None):  # noqa: D102
         pos = pos or self._position
-        length = self.__length_hint__()
+        size = self._size()
 
         self.seek(0)
 
         if not pos:
             handle = io.BytesIO()
-        elif pos > length:
-            handle = io.BytesIO(self.read() + b'\0'*(pos - length))
+        elif pos > size:
+            handle = io.BytesIO(self.read() + b'\0'*(pos - size))
         else:
             handle = io.BytesIO(self.read(pos))
 
