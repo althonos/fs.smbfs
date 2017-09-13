@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import re
+import ntpath
 import socket
 import itertools
 
@@ -17,7 +18,7 @@ from .. import errors
 from ..base import FS
 from ..info import Info
 from ..mode import Mode
-from ..path import join, dirname
+from ..path import join, dirname, basename
 from ..enums import ResourceType
 from ..permissions import Permissions
 
@@ -85,7 +86,7 @@ class SMBFS(FS):
         namespaces = namespaces or ()
 
         info = {'basic': {
-            'name': shared_file.filename,
+            'name': ntpath.basename(shared_file.filename),
             'is_dir': shared_file.isDirectory,
         }}
 
