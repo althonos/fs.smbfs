@@ -75,27 +75,22 @@ class SMBFile(io.RawIOBase):
         return self._position
 
     def seek(self, offset, whence=Seek.set):  # noqa: D102
-
         if whence == Seek.set:
             if offset < 0:
                 raise ValueError("Negative seek position {}".format(offset))
             self._position = offset
-
         elif whence == Seek.current:
             self._position = max(self._position + offset, 0)
-
         elif whence == Seek.end:
             if offset > 0:
                 raise ValueError("Positive seek position {}".format(offset))
             self._position = max(0, self._size() + offset)
-
         else:
             raise ValueError(
                 "Invalid whence ({}, should be {}, {} or {})".format(
                     whence, Seek.set, Seek.current, Seek.end
                 )
             )
-
         return self._position
 
     def writable(self):  # noqa: D102
@@ -114,7 +109,7 @@ class SMBFile(io.RawIOBase):
         return written_bytes
 
     def truncate(self, pos=None):  # noqa: D102
-        pos = pos or self._position
+        pos = pos if pos is not None else self._position
         size = self._size()
 
         self.seek(0)
@@ -129,9 +124,8 @@ class SMBFile(io.RawIOBase):
         # FIXME: instead of reading everything up to `pos`,
         #        create an IO wrapper that looks like its
         #        EOF is at `pos`
-        self._position = self._smb.storeFileFromOffset(
+        return self._smb.storeFileFromOffset(
             service_name=self._share, path=self._smb_path,
             file_obj=handle, offset=0, truncate=True,
             timeout=self._fs._timeout
         )
-        return self._position
