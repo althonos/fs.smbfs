@@ -244,6 +244,12 @@ class SMBFS(FS):
                 if share.type == share.DISK_TREE
         }
 
+    def close(self):  # noqa: D102
+        if not self.isclosed():
+            self._smb.close()
+            super(SMBFS, self).close()
+
+
     def makedir(self, path, permissions=None, recreate=False):  # noqa: D102
         _path = self.validatepath(path)
 
