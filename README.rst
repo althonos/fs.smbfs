@@ -79,6 +79,9 @@ Install directly from PyPI, using `pip <https://pip.pypa.io/>`_ ::
 Usage
 -----
 
+Opener
+''''''
+
 Use ``fs.open_fs`` to open a filesystem with an SMB
 `FS URL <https://pyfilesystem2.readthedocs.io/en/latest/openers.html>`_:
 
@@ -91,29 +94,55 @@ The opener can use either an IPv4 address or a NetBIOS hostname, using the
 `NetBIOS name service <https://en.wikipedia.org/wiki/NetBIOS#Name_service>`_
 to find the other token.
 
-Otherwise, use the ``SMBFS`` constructor:
+The following parameters can be passed as URL parameters: ``timeout``,
+``name-port``, ``direct-tcp``.
+
+
+Constructor
+'''''''''''
 
 .. code:: python
 
     import fs.smbfs
     smb_fs = fs.smbfs.SMBFS(
-      host,       # name or IP of the SMB server host
-      username,   # username to connect with,
-                  # defaults to 'guest' for anonymous connection
-      passwd,     # password to connect with,
-                  # defaults to '' for anonymous connection
-      timeout,    # timeout for NetBIOS and TCP requests
-      port,       # Port the SMB server is listening on
-      name_port,  # Port the NetBIOS naming service is listening on
-      direct_tcp, # True if the Server is directly accessible through TCP,
-                  # leave to False for maximum compatibility
+        host, username='guest', passwd='', timeout=15,
+        port=139, name_port=137, direct_tcp=False
     )
+
+with each argument explained below:
+
+``host``
+  the name or IP address of the SMB server
+``user``
+  the username to connect with, defaults to `'guest'` for anonymous connection.
+``passwd``
+  an optional password, defaults to `''` for anonymous connection.
+``timeout``
+  the timeout, in seconds, for NetBIOS and TCP requests.
+``port``
+  the port the SMB server is listening on.
+``naming_port``
+  the port the NetBIOS naming service is listening on
+``direct_tcp``
+  set to `True` if the server is accessible directly through TCP, leave to
+  `False` for maximum compatibility
+
 
 Once created, the ``SMBFS`` filesystem behaves like any other filesystem
 (see the `Pyfilesystem2 documentation <https://pyfilesystem2.readthedocs.io>`_),
 except if it was open in the root directory of the server, in which case the
 root directory of the ``SMBFS`` instance will be read-only (since SMB clients
 cannot create new shares).
+
+
+Feedback
+--------
+
+Found a bug ? Have an enhancement request ? Head over to the
+`GitHub issue tracker <https://github.com/althonos/fs.smbfs/issues>`_ of the
+project if you need to report or ask something. If you are filling in on a bug,
+please include as much information as you can about the issue, and try to
+recreate the same bug in a simple, easily reproductible situation.
 
 
 See also

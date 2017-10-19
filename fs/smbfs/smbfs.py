@@ -200,7 +200,7 @@ class SMBFS(FS):
             info['details'] = {'type': ResourceType.directory, 'size': 0}
         return Info(info)
 
-    def __init__(self, host, username=None, passwd=None, timeout=15,
+    def __init__(self, host, username='guest', passwd='', timeout=15,
                  port=139, name_port=137, direct_tcp=False):  # noqa: D102
         super(SMBFS, self).__init__()
 
@@ -227,8 +227,8 @@ class SMBFS(FS):
         self._timeout = timeout
         self._server_port = port
         self._client_name = socket.gethostname()
-        self._username = username or 'guest'
-        self._password = passwd or ''
+        self._username = 'guest'
+        self._password = ''
 
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
