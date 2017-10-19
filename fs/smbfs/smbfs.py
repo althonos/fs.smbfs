@@ -233,7 +233,7 @@ class SMBFS(FS):
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
             self._client_name, self._server_name,
-            is_direct_tcp=False,
+            is_direct_tcp=direct_tcp,
         )
 
         if not self._smb.connect(ip, port, timeout=timeout):
