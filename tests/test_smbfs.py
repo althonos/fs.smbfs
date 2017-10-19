@@ -60,13 +60,24 @@ class TestSMBOpenerWithHost(_TestSMBFS, fs.test.FSTestCases, unittest.TestCase):
 
     @staticmethod
     def make_fs():
-        return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data')
+        return fs.open_fs('smb://rio:letsdance@SAMBAALPINE/data?timeout=5')
+
+    @unittest.skipUnless(utils.fs_version > (2, 0, 7),
+                         'FS URLs params not supported.')
+    def test_url_parameters(self):
+        self.assertEqual(self.fs.delegate_fs()._timeout, 5)
+
 
 class TestSMBOpenerWithIP(_TestSMBFS, fs.test.FSTestCases, unittest.TestCase):
 
     @staticmethod
     def make_fs():
-        return fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
+        return fs.open_fs('smb://rio:letsdance@127.0.0.1/data?timeout=5')
+
+    @unittest.skipUnless(utils.fs_version > (2, 0, 7),
+                         'FS URLs params not supported.')
+    def test_url_parameters(self):
+        self.assertEqual(self.fs.delegate_fs()._timeout, 5)
 
 
 class TestSMBFS(_TestSMBFS, unittest.TestCase):
