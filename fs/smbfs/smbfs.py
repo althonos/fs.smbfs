@@ -227,8 +227,8 @@ class SMBFS(FS):
         self._timeout = timeout
         self._server_port = port
         self._client_name = socket.gethostname()
-        self._username = 'guest'
-        self._password = ''
+        self._username = username
+        self._password = passwd
 
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
