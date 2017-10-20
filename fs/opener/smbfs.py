@@ -18,7 +18,7 @@ try:
     import pkg_resources
     _name = __name__.replace('.opener', '')
     __version__ = pkg_resources.get_distribution(_name).version
-except Exception:
+except Exception: # pragma: no cover
     pkg_resources = None
 finally:
     del pkg_resources

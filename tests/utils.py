@@ -2,13 +2,16 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import atexit
 import os
+import time
 
 import fs
 import docker
 
 try:
-    docker.from_env(version='auto').info()
+    docker_client = docker.from_env(version='auto')
+    docker_client.info()
 except Exception:
     DOCKER = False
 else:
@@ -20,8 +23,15 @@ except ImportError:
     import mock                 # pylint: disable=unused-import
 
 CI = os.getenv('CI', '').lower() == 'true'
+FSVERSION = tuple(map(int, fs.__version__.split('.')))
 
-def tag_on(condition, wrapper):
-    return wrapper if condition else (lambda func: func)
-
-fs_version = tuple(map(int, fs.__version__.split('.')))
+if DOCKER:
+    docker_client = docker.from_env(version='auto')
+    smb_container = docker_client.containers.run(
+        "pwntr/samba-alpine", detach=True, tty=True,
+        ports={'139/tcp': 139, '137/udp': 137, '445/tcp': 445},
+        tmpfs={'/shared': 'size=3G,uid=1000'},
+    )
+    atexit.register(smb_container.remove)
+    atexit.register(smb_container.kill)
+    time.sleep(15)
