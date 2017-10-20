@@ -9,7 +9,7 @@ import unittest
 import tempfile
 
 import fs.test
-from fs.errors import PermissionDenied, ResourceNotFound
+import fs.errors
 
 from . import utils
 
@@ -24,20 +24,35 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
 
     def test_write_denied(self):
         self.fs = fs.open_fs('smb://127.0.0.1/data')
-        self.assertRaises(PermissionDenied, self.fs.openbin, '/test.txt', 'w')
+        self.assertRaises(
+            fs.errors.PermissionDenied,
+            self.fs.openbin, '/test.txt', 'w'
+        )
 
     def test_openbin_root(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
-        self.assertRaises(ResourceNotFound, self.fs.openbin, '/abc')
-        self.assertRaises(PermissionDenied, self.fs.openbin, '/abc', 'w')
+        self.assertRaises(
+            fs.errors.ResourceNotFound,
+            self.fs.openbin, '/abc'
+        )
+        self.assertRaises(
+            fs.errors.PermissionDenied,
+            self.fs.openbin, '/abc', 'w'
+        )
 
     def test_makedir_root(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
-        self.assertRaises(PermissionDenied, self.fs.makedir, '/abc')
+        self.assertRaises(
+            fs.errors.PermissionDenied,
+            self.fs.makedir, '/abc'
+        )
 
     def test_removedir_root(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
-        self.assertRaises(PermissionDenied, self.fs.removedir, '/data')
+        self.assertRaises(
+            fs.errors.PermissionDenied,
+            self.fs.removedir, '/data'
+        )
 
     def test_seek(self):
         self.fs.settext('foo.txt', 'Hello, World !')
@@ -52,3 +67,39 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             self.assertEqual(handle.seek(-2, 1), 0)
 
         self.fs.remove('foo.txt')
+
+    def test_makedir(self):
+        super(TestSMBFS, self).test_makedir()
+        self.fs.touch('abc')
+        self.assertRaises(
+            fs.errors.DirectoryExpected,
+            self.fs.makedir, '/abc/def'
+        )
+        self.assertRaises(
+            fs.errors.ResourceNotFound,
+            self.fs.makedir, '/spam/bar'
+        )
+        self.assertRaises(
+            fs.errors.DirectoryExists,
+            self.fs.delegate_fs().makedir, '/'
+        )
+
+    def test_openbin(self):
+        super(TestSMBFS, self).test_openbin()
+        self.fs.makedir('spam')
+        self.assertRaises(
+            fs.errors.FileExpected,
+            self.fs.openbin, 'spam'
+        )
+        self.fs.touch('abc.txt')
+        self.assertRaises(
+            fs.errors.DirectoryExpected,
+            self.fs.openbin, 'abc.txt/def.txt', 'w'
+        )
+
+    def test_removedir(self):
+        super(TestSMBFS, self).test_removedir()
+        self.assertRaises(
+            fs.errors.RemoveRootError,
+            self.fs.delegate_fs().removedir, '/'
+        )

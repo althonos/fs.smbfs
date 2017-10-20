@@ -97,7 +97,8 @@ class SMBFS(FS):
                 'modified': shared_file.last_write_time,
                 'size': shared_file.file_size,
                 'type': ResourceType.directory \
-                        if shared_file.isDirectory else ResourceType.file,
+                        if shared_file.isDirectory \
+                        else ResourceType.file,
             }
 
         if 'smb' in namespaces:
@@ -269,7 +270,7 @@ class SMBFS(FS):
 
             # Check parent path exists and is a directory
             if not self.getinfo(dirname(_path)).is_dir:
-                raise errors.DirectoryExpected(dirname(_path))
+                raise errors.DirectoryExpected(dirname(path))
 
             # Check new directory does not exist
             try:
@@ -298,8 +299,8 @@ class SMBFS(FS):
         elif not _mode.create:
             raise errors.ResourceNotFound(path)
         else:
-            if self.gettype(dirname(_path)) is not ResourceType.directory:
-                raise errors.FileExpected(path)
+            if not self.getinfo(dirname(_path)).is_dir:
+                raise errors.DirectoryExpected(dirname(path))
 
         share, smb_path = utils.split_path(_path)
         if not smb_path:
@@ -316,7 +317,7 @@ class SMBFS(FS):
         _src_share, _src_smb_path = utils.split_path(_src_path)
         _dst_share, _dst_smb_path = utils.split_path(_dst_path)
 
-        if not self.gettype(src_path) is ResourceType.file:
+        if not self.getinfo(src_path).is_file:
             raise errors.FileExpected(src_path)
 
         # Cannot rename across shares
@@ -327,7 +328,7 @@ class SMBFS(FS):
         else:
 
             # Check the parent of dst_path exists and is not a file
-            if not self.gettype(dirname(dst_path)) is ResourceType.directory:
+            if not self.getinfo(dirname(dst_path)).is_dir:
                 raise errors.DirectoryExpected(dirname(dst_path))
 
             # Check the destination does not exist
@@ -397,7 +398,7 @@ class SMBFS(FS):
     def remove(self, path):  # noqa: D102
         _path = self.validatepath(path)
 
-        if self.gettype(_path) is not ResourceType.file:
+        if not self.getinfo(_path).is_file:
             raise errors.FileExpected(path)
 
         share, smb_path = utils.split_path(_path)
