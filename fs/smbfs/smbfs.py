@@ -237,7 +237,9 @@ class SMBFS(FS):
             is_direct_tcp=direct_tcp,
         )
 
-        if not self._smb.connect(ip, port, timeout=timeout):
+        try:
+            self._smb.connect(ip, port, timeout=timeout)
+        except (IOError, OSError):
             raise errors.CreateFailed("could not connect to '{}'".format(host))
 
         self._shares = {

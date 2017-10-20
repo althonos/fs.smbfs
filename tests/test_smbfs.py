@@ -23,6 +23,14 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         smbfs.removetree('/')
         return smbfs
 
+    def test_connection_error(self):
+        with utils.mock.patch('fs.smbfs.smbfs.SMBFS.NETBIOS') as n:
+            n.queryIPForName = utils.mock.MagicMock(return_value = ("TE"))
+            self.assertRaises(
+                fs.errors.CreateFailed,
+                fs.open_fs, 'smb://8.8.8.8?timeout=1'
+            )
+
     def test_write_denied(self):
         self.fs = fs.open_fs('smb://127.0.0.1/data')
         self.assertRaises(
@@ -95,9 +103,8 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         )
         self.assertRaises(
             fs.errors.DestinationExists,
-            self.fs.move, 'a', 'b'
+            self.fs.delegate_fs().move, 'data/a', 'data/b'
         )
-
 
     def test_openbin(self):
         super(TestSMBFS, self).test_openbin()
