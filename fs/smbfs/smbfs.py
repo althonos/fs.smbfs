@@ -147,7 +147,7 @@ class SMBFS(FS):
                   file Windows technically allows to open (since there is no
                   such thing as *other* groups in Windows).
         """
-        access = {'gid': sd.group, 'uid': sd.owner}
+        access = {'gid': str(sd.group), 'uid': str(sd.owner)}
 
         # Extract Access Control Entries corresponding to
         # * `everyone` (used for UNIX `others` mode)
@@ -389,7 +389,7 @@ class SMBFS(FS):
         share, smb_path = utils.split_path(self.validatepath(path))
         for shared_file in self._smb.listPath(share, smb_path):
             if shared_file.filename not in '..':
-                if 'types' in namespaces:
+                if 'access' in namespaces:
                     sd = self._smb.getSecurity(
                         share, join(smb_path, shared_file.filename))
                 yield self._make_info_from_shared_file(

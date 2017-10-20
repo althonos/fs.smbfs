@@ -10,6 +10,7 @@ import tempfile
 
 import fs.test
 import fs.errors
+from fs.enums import ResourceType
 
 from . import utils
 
@@ -84,6 +85,20 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             self.fs.delegate_fs().makedir, '/'
         )
 
+    def test_move(self):
+        super(TestSMBFS, self).test_move()
+        self.fs.touch('a')
+        self.fs.touch('b')
+        self.assertRaises(
+            fs.errors.DirectoryExpected,
+            self.fs.move, 'a', 'b/a'
+        )
+        self.assertRaises(
+            fs.errors.DestinationExists,
+            self.fs.move, 'a', 'b'
+        )
+
+
     def test_openbin(self):
         super(TestSMBFS, self).test_openbin()
         self.fs.makedir('spam')
@@ -103,3 +118,19 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             fs.errors.RemoveRootError,
             self.fs.delegate_fs().removedir, '/'
         )
+
+    @unittest.expectedFailure
+    def test_scanshares(self):
+        share = next(self.fs.delegate_fs().scandir('/', ['basic', 'access']))
+        self.assertEqual(share.name, 'data')
+        self.assertEqual(share.get('access', 'permissions').mode, 777)
+
+    def test_getinfo_root(self):
+        self.assertEqual(self.fs.delegate_fs().gettype('/'), ResourceType.directory)
+        self.assertEqual(self.fs.delegate_fs().getsize('/'), 0)
+
+    def test_getinfo_smb(self):
+        self.fs.settext('test.txt', 'This is a test')
+        info = self.fs.getinfo('test.txt', namespaces=['basic', 'smb'])
+        self.assertFalse(info.get('smb', 'hidden'))
+        self.assertFalse(info.get('smb', 'system'))
