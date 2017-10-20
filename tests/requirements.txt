@@ -1,4 +1,0 @@
-green
-codecov
-docker
-docutils
