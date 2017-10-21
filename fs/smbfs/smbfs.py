@@ -4,7 +4,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import re
 import socket
 import itertools
 
@@ -17,7 +16,7 @@ from .. import errors
 from ..base import FS
 from ..info import Info
 from ..mode import Mode
-from ..path import join, dirname, basename
+from ..path import join, dirname
 from ..enums import ResourceType
 from ..permissions import Permissions
 
@@ -251,7 +250,6 @@ class SMBFS(FS):
         if not self.isclosed():
             self._smb.close()
             super(SMBFS, self).close()
-
 
     def makedir(self, path, permissions=None, recreate=False):  # noqa: D102
         _path = self.validatepath(path)
