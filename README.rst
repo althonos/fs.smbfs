@@ -1,5 +1,5 @@
-fs.smbfs
-========
+``fs.smbfs``
+============
 
 |Source| |PyPI| |Travis| |Codecov| |Codacy| |Format| |License|
 
