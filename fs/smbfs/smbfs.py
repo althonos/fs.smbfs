@@ -441,7 +441,10 @@ class SMBFS(FS):
             raise errors.ResourceNotFound(path)
 
         if 'access' in namespaces:
-            sd = self._smb.getSecurity(share, smb_path)
+            try:
+                sd = self._smb.getSecurity(share, smb_path)
+            except smb.base.NotReadyError:
+                sd = None
 
         info = self._make_info_from_shared_file(shared_file, sd, namespaces)
         if not smb_path:
