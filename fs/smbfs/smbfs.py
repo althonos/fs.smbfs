@@ -351,6 +351,12 @@ class SMBFS(FS):
             iter_info = itertools.islice(iter_info, start, end)
         return iter_info
 
+    def _getSecurity(self, share, path):
+        try:
+            return self._smb.getSecurity(share, path)
+        except smb.base.NotReadyError:
+            return None
+
     def _scanshares(self, namespaces=None):
         """Iterate over the shares in the root directory.
 
@@ -364,10 +370,11 @@ class SMBFS(FS):
         for device in self._smb.listShares():
             if device.type == device.DISK_TREE:
                 if 'access' in namespaces:
-                    sd = self._smb.getSecurity(device.name, '/')
+                    sd = self._getSecurity(device.name, '/')
                 info = self._make_info_from_shared_file(
                     self._smb.getAttributes(device.name, '/'),
-                    sd, namespaces)
+                    sd, namespaces
+                )
                 info.raw['basic']['name'] = device.name
                 yield info
 
@@ -390,7 +397,7 @@ class SMBFS(FS):
         for shared_file in self._smb.listPath(share, smb_path):
             if shared_file.filename not in '..':
                 if 'access' in namespaces:
-                    sd = self._smb.getSecurity(
+                    sd = self._getSecurity(
                         share, join(smb_path, shared_file.filename))
                 yield self._make_info_from_shared_file(
                     shared_file, sd, namespaces)
@@ -441,10 +448,7 @@ class SMBFS(FS):
             raise errors.ResourceNotFound(path)
 
         if 'access' in namespaces:
-            try:
-                sd = self._smb.getSecurity(share, smb_path)
-            except smb.base.NotReadyError:
-                sd = None
+            sd = self._getSecurity(share, smb_path)
 
         info = self._make_info_from_shared_file(shared_file, sd, namespaces)
         if not smb_path:

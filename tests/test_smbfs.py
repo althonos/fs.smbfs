@@ -137,7 +137,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         self.assertEqual(self.fs.delegate_fs().gettype('/'), ResourceType.directory)
         self.assertEqual(self.fs.delegate_fs().getsize('/'), 0)
 
-    def test_getinfo_access_smb1(self):
+    def test_info_access_smb1(self):
         self.fs.settext('test.txt', 'This is a test')
         _smb = self.fs.delegate_fs()._smb
         with utils.mock.patch.object(_smb, '_getSecurity', new=_smb._getSecurity_SMB1):
@@ -145,6 +145,10 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
                 info = self.fs.getinfo('test.txt', namespaces=['access'])
             except smb.base.NotReadyError:
                 self.fail("getinfo(..., ['access']) raised an error")
+            try:
+                list(self.fs.scandir('/', namespaces=['access']))
+            except smb.base.NotReadyError:
+                self.fail("scandir(..., ['access']) raised an error")
 
     def test_getinfo_smb(self):
         self.fs.settext('test.txt', 'This is a test')
