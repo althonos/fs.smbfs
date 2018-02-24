@@ -151,7 +151,5 @@ See also
 * `fs <https://github.com/Pyfilesystem/pyfilesystem2>`_, the core Pyfilesystem2 library
 * `fs.archive <https://github.com/althonos/fs.archive>`_, enhanced archive filesystems
   for Pyfilesystem2
-* `fs.proxy <https://github.com/althonos/fs.proxy>`_, miscellaneous proxy filesystems
-  for Pyfilesystem2
 * `fs.sshfs <https://github.com/althonos/fs.sshfs>`_, Pyfilesystem2 over SSH
   using paramiko
