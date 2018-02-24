@@ -7,12 +7,15 @@ import time
 import shutil
 import unittest
 import tempfile
+import uuid
 
 import smb.base
 
-import fs.test
 import fs.errors
+import fs.path
+import fs.test
 from fs.enums import ResourceType
+from fs.subfs import ClosingSubFS
 
 from . import utils
 
@@ -21,9 +24,10 @@ from . import utils
 class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
 
     def make_fs(self):
-        smbfs = fs.open_fs('smb://rio:letsdance@127.0.0.1/data')
-        smbfs.removetree('/')
-        return smbfs
+        self.dir = fs.path.join('data', uuid.uuid4().hex)
+        smbfs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        smbfs.makedirs(self.dir, recreate=True)
+        return smbfs.opendir(self.dir, factory=ClosingSubFS)
 
     def test_connection_error(self):
         with utils.mock.patch('fs.smbfs.smbfs.SMBFS.NETBIOS') as n:
@@ -60,10 +64,13 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
 
     def test_removedir_root(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
-        self.assertRaises(
-            fs.errors.PermissionDenied,
-            self.fs.removedir, '/data'
-        )
+
+        scandir = utils.mock.MagicMock(return_value=iter([]))
+        with utils.mock.patch.object(self.fs, 'scandir', scandir):
+            self.assertRaises(
+                fs.errors.PermissionDenied,
+                self.fs.removedir, '/data'
+            )
 
     def test_seek(self):
         self.fs.settext('foo.txt', 'Hello, World !')
@@ -105,7 +112,9 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         )
         self.assertRaises(
             fs.errors.DestinationExists,
-            self.fs.delegate_fs().move, 'data/a', 'data/b'
+            self.fs.delegate_fs().move,
+            fs.path.join(self.dir, 'a'),
+            fs.path.join(self.dir, 'b'),
         )
 
     def test_openbin(self):

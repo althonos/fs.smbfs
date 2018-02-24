@@ -47,7 +47,7 @@ class TestSMBOpener(unittest.TestCase):
     def test_create(self):
 
         directory = "data/test/directory"
-        base = "smb://rio:letsdance@SAMBAALPINE"
+        base = "smb://rio:letsdance@127.0.0.1"
         url = "{}/{}".format(base, directory)
 
         # Make sure unexisting directory raises `CreateFailed`
@@ -70,5 +70,3 @@ class TestSMBOpener(unittest.TestCase):
         # Open with create and check this does fail
         with fs.open_fs(url, create=True) as smb_fs:
             self.assertTrue(smb_fs.isfile("foo"))
-
-
