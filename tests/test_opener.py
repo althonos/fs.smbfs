@@ -6,6 +6,7 @@ import unittest
 
 import six
 import fs.errors
+import fs.path
 
 from . import utils
 
@@ -42,3 +43,32 @@ class TestSMBOpener(unittest.TestCase):
 
     def test_ip(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+
+    def test_create(self):
+
+        directory = "data/test/directory"
+        base = "smb://rio:letsdance@SAMBAALPINE"
+        url = "{}/{}".format(base, directory)
+
+        # Make sure unexisting directory raises `CreateFailed`
+        with self.assertRaises(fs.errors.CreateFailed):
+            smb_fs = fs.open_fs(url)
+
+        # Open with `create` and try touching a file
+        with fs.open_fs(url, create=True) as smb_fs:
+            smb_fs.touch("foo")
+
+        # Open the base filesystem and check the subdirectory exists
+        with fs.open_fs(base) as smb_fs:
+            self.assertTrue(smb_fs.isdir(directory))
+            self.assertTrue(smb_fs.isfile(fs.path.join(directory, "foo")))
+
+        # Open without `create` and check the file exists
+        with fs.open_fs(url) as smb_fs:
+            self.assertTrue(smb_fs.isfile("foo"))
+
+        # Open with create and check this does fail
+        with fs.open_fs(url, create=True) as smb_fs:
+            self.assertTrue(smb_fs.isfile("foo"))
+
+

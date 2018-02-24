@@ -6,8 +6,11 @@ from __future__ import absolute_import
 
 import configparser
 
+import six
+
 from .base import Opener
 from ..subfs import ClosingSubFS
+from ..errors import CreateFailed
 
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2017 Martin Larralde"
@@ -53,7 +56,12 @@ class SMBOpener(Opener):
             direct_tcp=params.getboolean('smbfs', 'direct-tcp', fallback=False)
         )
 
-        if dir_path: # pragma: no cover
-            return smb_fs.opendir(dir_path, factory=ClosingSubFS)
-        else:
-            return smb_fs
+        try:
+            if dir_path:
+                if create:
+                    smb_fs.makedirs(dir_path, recreate=True)
+                return smb_fs.opendir(dir_path, factory=ClosingSubFS)
+            else:
+                return smb_fs
+        except Exception as err:
+            six.raise_from(CreateFailed, err)
