@@ -206,28 +206,11 @@ class SMBFS(FS):
         super(SMBFS, self).__init__()
 
         self._server_name, self._server_ip = utils.get_hostname_and_ip(
-            host, timeout=timeout, name_port=name_port
+            host,
+            self.NETBIOS,
+            timeout=timeout,
+            name_port=name_port
         )
-
-        # If given an IP: find the SMB host name
-        if utils.is_ip(host) or host == 'localhost':
-            self._server_ip = ip = host
-            response = self.NETBIOS.queryIPForName(
-                host, timeout=timeout, port=name_port)
-            if not response:
-                raise errors.CreateFailed(
-                    "could not get a name for IP: '{}'".format(host))
-            self._server_name = response[0]
-
-        # If given an hostname: find the IP
-        else:
-            self._server_name = host
-            response = self.NETBIOS.queryName(
-                host, '', timeout=timeout, port=name_port)
-            if not response:
-                raise errors.CreateFailed(
-                    "could not get an IP for name: '{}'".format(host))
-            self._server_ip = ip = response[0]
 
         self._timeout = timeout
         self._server_port = port
@@ -235,14 +218,17 @@ class SMBFS(FS):
         self._username = username
         self._password = passwd
 
-        self._smb = smb.SMBConnection.SMBConnection(
-            self._username, self._password,
-            self._client_name, self._server_name,
-            is_direct_tcp=direct_tcp,
-        )
+        try:
+            self._smb = smb.SMBConnection.SMBConnection(
+                self._username, self._password,
+                self._client_name, self._server_name,
+                is_direct_tcp=direct_tcp,
+            )
+        except Exception:
+            raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
 
         try:
-            self._smb.connect(ip, port, timeout=timeout)
+            self._smb.connect(self._server_ip, port, timeout=timeout)
         except (IOError, OSError):
             raise errors.CreateFailed("could not connect to '{}'".format(host))
 
