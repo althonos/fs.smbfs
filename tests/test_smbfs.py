@@ -181,6 +181,7 @@ class TestSMBFSConnection(unittest.TestCase):
     def open_smbfs(self, host_token):
         return SMBFS(host_token, self.user, self.pasw)
 
+    @utils.py2expectedFailure
     def test_hostname(self):
         smbfs = self.open_smbfs("SAMBAALPINE")
 
@@ -205,9 +206,11 @@ class TestSMBFSConnection(unittest.TestCase):
     def test_none_and_ip(self):
         smbfs = self.open_smbfs((None, "127.0.0.1"))
 
+    @utils.py2expectedFailure
     def test_hostname_and_none(self):
         smbfs = self.open_smbfs(("SAMBAALPINE", None))
 
+    @utils.py2expectedFailure
     def test_none_and_hostname(self):
         smbfs = self.open_smbfs((None, "SAMBAALPINE"))
 

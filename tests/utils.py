@@ -5,9 +5,11 @@ from __future__ import unicode_literals
 import atexit
 import os
 import time
+import unittest
 
-import fs
 import docker
+import fs
+import six
 
 try:
     docker_client = docker.from_env(version='auto')
@@ -35,3 +37,10 @@ if DOCKER:
     atexit.register(smb_container.remove)
     atexit.register(smb_container.kill)
     time.sleep(15)
+
+if six.PY2:
+    def py2expectedFailure(func):
+        return unittest.expectedFailure(func)
+else:
+    def py2expectedFailure(func):
+        return func

@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import re
+import six
 
 from ..path import relpath
 
@@ -91,5 +92,11 @@ def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
     # Make sure we have both values
     elif ip is None and name is None:
        raise ValueError("Could not get host/IP pair for: '{}'".format(host))
+
+    if six.PY2:
+        if isinstance(name, six.text_type):
+            name = name.encode('utf-8')
+        if isinstance(ip, six.text_type):
+            ip = ip.encode('utf-8')
 
     return name, ip

@@ -19,15 +19,13 @@ class TestSMBOpener(unittest.TestCase):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/data?timeout=5')
         self.assertEqual(self.fs.delegate_fs()._timeout, 5)
 
+    @utils.py2expectedFailure
     def test_bad_host(self):
         self.assertRaises(
             fs.errors.CreateFailed,
             fs.open_fs,
             'smb://NONSENSE/?timeout=2',
         )
-    if six.PY2:
-        test_bad_host = unittest.expectedFailure(test_bad_host)
-
 
     def test_bad_ip(self):
         self.assertRaises(
@@ -36,10 +34,9 @@ class TestSMBOpener(unittest.TestCase):
             'smb://84.190.160.12/?timeout=2',
         )
 
+    @utils.py2expectedFailure
     def test_host(self):
         self.fs = fs.open_fs('smb://rio:letsdance@SAMBAALPINE/')
-    if six.PY2:
-        test_host = unittest.expectedFailure(test_host)
 
     def test_ip(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
