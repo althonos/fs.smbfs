@@ -31,7 +31,8 @@ class SMBFS(FS):
     """A filesystem over SMB.
 
     Arguments:
-        host (str): the IP or NetBIOS hostname of the server.
+        host (str or tuple): the IP or NetBIOS hostname of the server,
+            or an (IP, hostname) tuple.
         username (str): the username to connect with. Use `None` to
             connect anonymously. **[default: None]**
         passwd (str): the password to connect with. Set to `None` to connect
@@ -203,6 +204,10 @@ class SMBFS(FS):
     def __init__(self, host, username='guest', passwd='', timeout=15,
                  port=139, name_port=137, direct_tcp=False):  # noqa: D102
         super(SMBFS, self).__init__()
+
+        self._server_name, self._server_ip = utils.get_hostname_and_ip(
+            host, timeout=timeout, name_port=name_port
+        )
 
         # If given an IP: find the SMB host name
         if utils.is_ip(host) or host == 'localhost':

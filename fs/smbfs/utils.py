@@ -12,7 +12,7 @@ from ..path import relpath
 __all__ = ['split_path', 'is_ip']
 
 #: The compiled regex used by `is_ip`.
-_RX_IP = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+_RX_IP = re.compile(r'localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
 
 
 def split_path(path):
@@ -43,4 +43,30 @@ def is_ip(token):
         >>> is_ip('github.com')
         False
     """
-    return _RX_IP.match(token)
+    return _RX_IP.match(token) is not None
+
+
+def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
+    try:
+        hostname, ip = host
+    except ValueError:
+        hostname, ip = host, None
+
+    if is_ip(hostname):
+        hostname, ip = ip, hostname
+
+    if hostname is None:
+        response = netbios.queryIPForName(ip, timeout=timeout, port=name_port)
+        if not response:
+            raise RuntimeError("could not get name for IP: '{}'".format(ip))
+        ip = response[0]
+    elif ip is None:
+        response = netbios.queryName(hostname, '', timeout=timeout, port=name_port)
+        if not response:
+            raise RuntimeError("could not get IP for host: '{}'".format(hostname))
+        hostname = response[0]
+
+    if not is_ip(ip) or ip is None or hostname is None:
+        raise ValueError("Could not get host/IP pair for: '{}'".format(host))
+
+    return hostname, ip
