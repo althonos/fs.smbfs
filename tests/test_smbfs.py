@@ -19,6 +19,7 @@ from fs.subfs import ClosingSubFS
 from fs.smbfs import SMBFS
 
 from . import utils
+from .utils import mock
 
 
 @unittest.skipUnless(utils.DOCKER, "docker service unreachable.")
@@ -186,11 +187,17 @@ class TestSMBFSConnection(unittest.TestCase):
     def test_ip(self):
         smbfs = self.open_smbfs("127.0.0.1")
 
+    @mock.patch.object(SMBFS, 'NETBIOS', mock.MagicMock())
     def test_hostname_and_ip(self):
         smbfs = self.open_smbfs(("SAMBAALPINE", "127.0.0.1"))
+        SMBFS.NETBIOS.queryIPforName.assert_not_called()
+        SMBFS.NETBIOS.queryName.assert_not_called()
 
+    @mock.patch.object(SMBFS, 'NETBIOS', mock.MagicMock())
     def test_ip_and_hostname(self):
         smbfs = self.open_smbfs(("127.0.0.1", "SAMBAALPINE"))
+        SMBFS.NETBIOS.queryIPforName.assert_not_called()
+        SMBFS.NETBIOS.queryName.assert_not_called()
 
     def test_ip_and_none(self):
         smbfs = self.open_smbfs(("127.0.0.1", None))
