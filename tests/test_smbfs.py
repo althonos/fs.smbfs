@@ -16,6 +16,7 @@ import fs.path
 import fs.test
 from fs.enums import ResourceType
 from fs.subfs import ClosingSubFS
+from fs.smbfs import SMBFS
 
 from . import utils
 
@@ -101,6 +102,10 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             fs.errors.DirectoryExists,
             self.fs.delegate_fs().makedir, '/'
         )
+        self.assertRaises(
+            fs.errors.DirectoryExists,
+            self.fs.delegate_fs().makedir, 'data'
+        )
 
     def test_move(self):
         super(TestSMBFS, self).test_move()
@@ -164,3 +169,49 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         info = self.fs.getinfo('test.txt', namespaces=['basic', 'smb'])
         self.assertFalse(info.get('smb', 'hidden'))
         self.assertFalse(info.get('smb', 'system'))
+
+
+@unittest.skipUnless(utils.DOCKER, "docker service unreachable.")
+class TestSMBFSConnection(unittest.TestCase):
+
+    user = "rio"
+    pasw = "letsdance"
+
+    def open_smbfs(self, host_token):
+        return SMBFS(host_token, self.user, self.pasw)
+
+    def test_hostname(self):
+        smbfs = self.open_smbfs("SAMBAALPINE")
+
+    def test_ip(self):
+        smbfs = self.open_smbfs("127.0.0.1")
+
+    def test_hostname_and_ip(self):
+        smbfs = self.open_smbfs(("SAMBAALPINE", "127.0.0.1"))
+
+    def test_ip_and_hostname(self):
+        smbfs = self.open_smbfs(("127.0.0.1", "SAMBAALPINE"))
+
+    def test_ip_and_none(self):
+        smbfs = self.open_smbfs(("127.0.0.1", None))
+
+    def test_none_and_ip(self):
+        smbfs = self.open_smbfs((None, "127.0.0.1"))
+
+    def test_hostname_and_none(self):
+        smbfs = self.open_smbfs(("SAMBAALPINE", None))
+
+    def test_none_and_hostname(self):
+        smbfs = self.open_smbfs((None, "SAMBAALPINE"))
+
+    def test_none_none(self):
+        self.assertRaises(
+            fs.errors.CreateFailed,
+            self.open_smbfs, (None, None)
+        )
+
+    def test_none(self):
+        self.assertRaises(
+            fs.errors.CreateFailed,
+            self.open_smbfs, None
+        )

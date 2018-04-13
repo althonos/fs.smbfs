@@ -36,6 +36,9 @@ def split_path(path):
 def is_ip(token):
     """Return True if ``token`` is an IP adress, using a regex.
 
+    Note:
+        ``is_ip("localhost")`` will return `True` !
+
     Example:
         >>> from fs.smbfs.utils import is_ip
         >>> is_ip('192.168.0.1')
@@ -47,30 +50,46 @@ def is_ip(token):
 
 
 def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
-    try:
-        hostname, ip = host
-    except ValueError:
-        hostname, ip = host, None
+    """Get the IP and hostnames from the given token.
 
-    if is_ip(hostname):
-        hostname, ip = ip, hostname
+    Example:
+        >>> from fs.smbfs.utils import get_hostname_and_ip as ghip
+        >>> from nmb.NetBIOS import NetBIOS
+        >>> nb = NetBIOS()
+        >>> ghip("SAMBAALPINE")
+        ("SAMBAALPINE", "127.0.0.1")
+        >>> ghip("localhost")
+        ("SAMBAALPINE", "localhost")
+        >>> ghip(("localhost", "SAMBAALPINE"))
+        ("SAMBAALPINE", "localhost")
+    """
+
+
+    try:
+        name, ip = host
+    except ValueError:
+        name, ip = host, None
+
+    # Swap values if needed
+    if (name is not None and is_ip(name)) or (ip is not None and not is_ip(ip)):
+        name, ip = ip, name
 
     # If given an IP: find the SMB host name
-    if hostname is None:
+    if name is None and ip is not None:
         response = netbios.queryIPForName(ip, timeout=timeout, port=name_port)
         if not response:
             raise RuntimeError("could not get name for IP: '{}'".format(ip))
-        hostname = response[0]
+        name = response[0]
 
     # If given an hostname: find the IP
-    elif ip is None:
-        response = netbios.queryName(hostname, '', timeout=timeout, port=name_port)
+    elif ip is None and name is not None:
+        response = netbios.queryName(name, '', timeout=timeout, port=name_port)
         if not response:
-            raise RuntimeError("could not get IP for host: '{}'".format(hostname))
+            raise RuntimeError("could not get IP for host: '{}'".format(name))
         ip = response[0]
 
-    #if not is_ip(ip) or ip is None or hostname is None:
-    #    raise ValueError("Could not get host/IP pair for: '{}'".format(host))
+    # Make sure we have both values
+    elif ip is None and name is None:
+       raise ValueError("Could not get host/IP pair for: '{}'".format(host))
 
-    print(hostname, ip)
-    return hostname, ip
+    return name, ip
