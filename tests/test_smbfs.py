@@ -146,7 +146,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
     def test_scanshares(self):
         share = next(self.fs.delegate_fs().scandir('/', ['basic', 'access']))
         self.assertEqual(share.name, 'data')
-        self.assertEqual(share.get('access', 'uid'), "S-1-5-21-872258815-2917653212-864907935-1000")
+        self.assertEqual(share.get('access', 'uid'), "S-1-5-21-3739179940-2322679054-2247185641-1000")
 
     def test_getinfo_root(self):
         self.assertEqual(self.fs.delegate_fs().gettype('/'), ResourceType.directory)
