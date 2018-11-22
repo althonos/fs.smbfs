@@ -1,33 +1,25 @@
-sudo: true
+sudo: false
 language: python
 cache: pip
+dist: xenial
 
 services:
 - docker
 
 matrix:
   include:
-  - python: "2.7"
-    env: STLS=setuptools
-  - python: "3.3"
-    env: STLS=setuptools~=39.2
-  - python: "3.4"
-    env: STLS=setuptools
-  - python: "3.5"
-    env: STLS=setuptools
-  - python: "3.6"
-    env: STLS=setuptools
-  - python: pypy
-    env: STLS=setuptools
+  - python: 2.7
+  - python: 3.4
+  - python: 3.5
+  - python: 3.6
+  - python: 3.7
   - python: pypy3.5
-    env: STLS=setuptools
   allow_failures:
-  - python: pypy
   - python: pypy3.5
 
 before_install:
 - docker pull pwntr/samba-alpine
-- pip install -U $STLS wheel
+- pip install -U setuptools wheel
 
 install:
 - pip install .[dev,test]
