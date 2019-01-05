@@ -9,7 +9,7 @@ from .smbfs import SMBFS
 __all__ = ['SMBFS']
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2017 Martin Larralde"
+__copyright__ = "Copyright (c) 2017-2019 Martin Larralde"
 __author__ = "Martin Larralde <martin.larralde@ens-cachan.fr>"
 __version__ = 'dev'
 

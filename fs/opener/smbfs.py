@@ -9,11 +9,12 @@ import configparser
 import six
 
 from .base import Opener
+from .registry import registry
 from ..subfs import ClosingSubFS
 from ..errors import CreateFailed
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2017 Martin Larralde"
+__copyright__ = "Copyright (c) 2017-2019 Martin Larralde"
 __author__ = "Martin Larralde <martin.larralde@ens-cachan.fr>"
 __version__ = 'dev'
 
@@ -65,3 +66,6 @@ class SMBOpener(Opener):
                 return smb_fs
         except Exception as err:
             six.raise_from(CreateFailed, err)
+
+
+registry.install(SMBOpener)
