@@ -75,7 +75,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             )
 
     def test_seek(self):
-        self.fs.settext('foo.txt', 'Hello, World !')
+        self.fs.writetext('foo.txt', 'Hello, World !')
 
         with self.fs.openbin('foo.txt') as handle:
             self.assertRaises(ValueError, handle.seek, -2, 0)
@@ -153,7 +153,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         self.assertEqual(self.fs.delegate_fs().getsize('/'), 0)
 
     def test_info_access_smb1(self):
-        self.fs.settext('test.txt', 'This is a test')
+        self.fs.writetext('test.txt', 'This is a test')
         _smb = self.fs.delegate_fs()._smb
         with utils.mock.patch.object(_smb, '_getSecurity', new=_smb._getSecurity_SMB1):
             try:
@@ -166,7 +166,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
                 self.fail("scandir(..., ['access']) raised an error")
 
     def test_getinfo_smb(self):
-        self.fs.settext('test.txt', 'This is a test')
+        self.fs.writetext('test.txt', 'This is a test')
         info = self.fs.getinfo('test.txt', namespaces=['basic', 'smb'])
         self.assertFalse(info.get('smb', 'hidden'))
         self.assertFalse(info.get('smb', 'system'))

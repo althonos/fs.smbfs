@@ -7,6 +7,7 @@ import unittest
 import six
 import fs.errors
 import fs.path
+from semantic_version import Version
 
 from . import utils
 
@@ -14,7 +15,7 @@ from . import utils
 @unittest.skipUnless(utils.DOCKER, "docker service unreachable.")
 class TestSMBOpener(unittest.TestCase):
 
-    @unittest.skipUnless(utils.FSVERSION > (2, 0, 7), 'not supported')
+    @unittest.skipIf(utils.FSVERSION <= Version("2.0.7"), 'not supported')
     def test_timeout_parameter(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/data?timeout=5')
         self.assertEqual(self.fs.delegate_fs()._timeout, 5)

@@ -9,6 +9,7 @@ import unittest
 
 import docker
 import fs
+import semantic_version
 import six
 
 try:
@@ -25,10 +26,9 @@ except ImportError:
     import mock                 # pylint: disable=unused-import
 
 CI = os.getenv('CI', '').lower() == 'true'
-FSVERSION = tuple(map(int, fs.__version__.split('.')))
+FSVERSION = semantic_version.Version(fs.__version__)
 
 if DOCKER:
-    docker_client = docker.from_env(version='auto')
     smb_container = docker_client.containers.run(
         "pwntr/samba-alpine", detach=True, tty=True,
         ports={'139/tcp': 139, '137/udp': 137, '445/tcp': 445},
