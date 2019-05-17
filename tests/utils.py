@@ -33,6 +33,9 @@ if DOCKER:
         "pwntr/samba-alpine", detach=True, tty=True,
         ports={'139/tcp': 139, '137/udp': 137, '445/tcp': 445},
         tmpfs={'/shared': 'size=3G,uid=1000'},
+        volumes={
+            os.path.abspath(os.path.realpath(os.path.join(__file__, os.path.pardir, "smb.conf"))): {"bind": "/config/smb.conf", "mode": "ro"}
+        }
     )
     atexit.register(smb_container.remove)
     atexit.register(smb_container.kill)
