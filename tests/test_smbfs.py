@@ -31,6 +31,10 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         smbfs.makedirs(self.dir, recreate=True)
         return smbfs.opendir(self.dir, factory=ClosingSubFS)
 
+    @unittest.skip("the filesystem is not case sensitive")
+    def test_case_sensitive(self):
+        super(TestSMBFS, self).test_case_sensitive()
+
     def test_connection_error(self):
         with utils.mock.patch('fs.smbfs.smbfs.SMBFS.NETBIOS') as n:
             n.queryIPForName = utils.mock.MagicMock(return_value = ("TE"))
