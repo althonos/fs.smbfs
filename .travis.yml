@@ -9,13 +9,12 @@ services:
 matrix:
   include:
   - python: 2.7
-  - python: 3.4
   - python: 3.5
   - python: 3.6
   - python: 3.7
-  - python: pypy3.5
+  - python: pypy3
   allow_failures:
-  - python: pypy3.5
+  - python: pypy3
 
 before_install:
 - docker pull pwntr/samba-alpine
@@ -41,7 +40,7 @@ deploy:
   on:
     tags: true
     repo: althonos/fs.smbfs
-    python: 3.6
+    python: 3.7
   distributions: sdist bdist_wheel
   server: https://upload.pypi.org/legacy/
   skip_upload_docs: true
