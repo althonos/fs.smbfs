@@ -202,17 +202,21 @@ class SMBFS(FS):
         return Info(info)
 
     def __init__(self, host, username='guest', passwd='', timeout=15,
-                 port=139, name_port=137, direct_tcp=False):  # noqa: D102
+                 port=139, name_port=137, direct_tcp=False, host_name=None):  # noqa: D102
         super(SMBFS, self).__init__()
 
-        try:
-            self._server_name, self._server_ip = utils.get_hostname_and_ip(
-                host, self.NETBIOS,
-                timeout=timeout,
-                name_port=name_port
-            )
-        except Exception:
-            raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
+        if host_name is not None:
+            self._server_name = host_name
+            self._server_ip = host
+        else:
+            try:
+                self._server_name, self._server_ip = utils.get_hostname_and_ip(
+                    host, self.NETBIOS,
+                    timeout=timeout,
+                    name_port=name_port
+                )
+            except Exception:
+                raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
 
         self._timeout = timeout
         self._server_port = port
