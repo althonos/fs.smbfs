@@ -47,15 +47,16 @@ class SMBOpener(Opener):
         params = configparser.ConfigParser()
         params.read_dict({'smbfs':getattr(parse_result, 'params', {})})
 
+        smb_hostname = params.get('smbfs', 'hostname', fallback=None)
+
         smb_fs = SMBFS(
-            smb_host,
+            (smb_host, smb_hostname),
             username=parse_result.username or 'guest',
             passwd=parse_result.password or '',
             port=smb_port,
             timeout=params.getint('smbfs', 'timeout', fallback=15),
             name_port=params.getint('smbfs', 'name-port', fallback=137),
             direct_tcp=params.getboolean('smbfs', 'direct-tcp', fallback=False),
-            host_name=params.get('smbfs', 'host-name', fallback=None)
         )
 
         try:
