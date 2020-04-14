@@ -230,3 +230,8 @@ class TestSMBFSConnection(unittest.TestCase):
             fs.errors.CreateFailed,
             self.open_smbfs, None
         )
+
+    def test_default_smb_port(self):
+        smbfs = self.open_smbfs("127.0.0.1")
+
+        self.assertEqual(smbfs._smb.sock.getpeername()[1], 139)

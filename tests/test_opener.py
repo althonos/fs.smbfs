@@ -50,6 +50,11 @@ class TestSMBOpener(unittest.TestCase):
         SMBFS.NETBIOS.queryIPforName.assert_not_called()
         SMBFS.NETBIOS.queryName.assert_not_called()
 
+    def test_default_smb_port(self):
+        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+
+        self.assertEqual(self.fs._smb.sock.getpeername()[1], 139)
+
     def test_create(self):
 
         directory = "data/test/directory"
