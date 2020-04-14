@@ -95,10 +95,12 @@ Use ``fs.open_fs`` to open a filesystem with an SMB
 
 The opener can use either an IPv4 address or a NetBIOS hostname, using the
 `NetBIOS name service <https://en.wikipedia.org/wiki/NetBIOS#Name_service>`_
-to find the other token.
+to find the other token. Otherwise, if NetBIOS is not available, a new SMB
+connection can be established by using the IPv4 address and giving the 
+hostname with the ``hostname`` URL parameter.
 
 The following parameters can be passed as URL parameters: ``timeout``,
-``name-port``, ``direct-tcp``.
+``name-port``, ``direct-tcp``, ``hostname``.
 
 
 Constructor
