@@ -41,7 +41,7 @@ class SMBOpener(Opener):
         from ..smbfs import SMBFS
         smb_host, _, dir_path = parse_result.resource.partition('/')
         smb_host, _, smb_port = smb_host.partition(':')
-        smb_port = int(smb_port) if smb_port.isdigit() else 445
+        smb_port = int(smb_port) if smb_port.isdigit() else None
 
 
         params = configparser.ConfigParser()

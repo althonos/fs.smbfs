@@ -202,7 +202,7 @@ class SMBFS(FS):
         return Info(info)
 
     def __init__(self, host, username='guest', passwd='', timeout=15,
-                 port=139, name_port=137, direct_tcp=False):  # noqa: D102
+                 port=None, name_port=137, direct_tcp=False):  # noqa: D102
         super(SMBFS, self).__init__()
 
         try:
@@ -226,8 +226,12 @@ class SMBFS(FS):
             is_direct_tcp=direct_tcp,
         )
 
+        connect_kw = dict(timeout=self._timeout)
+        if self._server_port is not None:
+            connect_kw['port'] = self._server_port
+
         try:
-            self._smb.connect(self._server_ip, port, timeout=timeout)
+            self._smb.connect(self._server_ip, **connect_kw)
         except (IOError, OSError):
             raise errors.CreateFailed("could not connect to '{}'".format(host))
 
