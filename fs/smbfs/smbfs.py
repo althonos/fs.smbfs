@@ -153,8 +153,8 @@ class SMBFS(FS):
         # * `everyone` (used for UNIX `others` mode)
         # * `owner` (used for UNIX `user` mode, falls back to `everyone`)
         # * `group` (used for UNIX `group` mode, falls back to `everyone`)
-        other_ace = next(ace for ace in sd.dacl.aces
-            if str(ace.sid).startswith(smb.security_descriptors.SID_EVERYONE))
+        other_ace = next((ace for ace in sd.dacl.aces
+            if str(ace.sid).startswith(smb.security_descriptors.SID_EVERYONE)), None)
         owner_ace = next((ace for ace in sd.dacl.aces
             if str(ace.sid).startswith(str(sd.owner))), other_ace)
         group_ace = next((ace for ace in sd.dacl.aces
@@ -170,10 +170,11 @@ class SMBFS(FS):
         }
 
         # Defines the mask used for each mode
+        other_mask = other_ace.mask if other_ace is not None else 0x0
         modes = {
-            'u': owner_ace.mask,
-            'g': group_ace.mask,
-            'o': other_ace.mask,
+            'u': (owner_ace.mask if owner_ace is not None else 0x0) | other_mask,
+            'g': (group_ace.mask if group_ace is not None else 0x0) | other_mask,
+            'o': other_mask,
         }
 
         # Create the permissions from a permission list
