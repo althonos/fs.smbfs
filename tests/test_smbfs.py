@@ -183,8 +183,8 @@ class TestSMBFSConnection(unittest.TestCase):
     user = "rio"
     pasw = "letsdance"
 
-    def open_smbfs(self, host_token):
-        return SMBFS(host_token, self.user, self.pasw)
+    def open_smbfs(self, host_token, port=None, direct_tcp=False):
+        return SMBFS(host_token, self.user, self.pasw, port=port, direct_tcp=direct_tcp)
 
     @utils.py2expectedFailure
     def test_hostname(self):
@@ -230,3 +230,13 @@ class TestSMBFSConnection(unittest.TestCase):
             fs.errors.CreateFailed,
             self.open_smbfs, None
         )
+
+    def test_default_smb_port(self):
+        smbfs = self.open_smbfs("127.0.0.1")
+
+        self.assertEqual(smbfs._smb.sock.getpeername()[1], 139)
+
+    def test_explicit_smb_port(self):
+        smbfs = self.open_smbfs("127.0.0.1", port=445, direct_tcp=True)
+
+        self.assertEqual(smbfs._smb.sock.getpeername()[1], 445)
