@@ -7,9 +7,11 @@ import unittest
 import six
 import fs.errors
 import fs.path
+from fs.smbfs import SMBFS
 from semantic_version import Version
 
 from . import utils
+from .utils import mock
 
 
 @unittest.skipUnless(utils.DOCKER, "docker service unreachable.")
@@ -41,6 +43,12 @@ class TestSMBOpener(unittest.TestCase):
 
     def test_ip(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+
+    @mock.patch.object(SMBFS, 'NETBIOS', mock.MagicMock())
+    def test_hostname_and_ip(self):
+        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/?hostname=SAMBAALPINE')
+        SMBFS.NETBIOS.queryIPforName.assert_not_called()
+        SMBFS.NETBIOS.queryName.assert_not_called()
 
     def test_create(self):
 
