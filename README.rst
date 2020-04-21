@@ -117,9 +117,9 @@ Constructor
 with each argument explained below:
 
 ``host``
-  either the host name of the SMB server, its IP address, or both in a `tuple`.
-  *if either the IP address or the host name is not given, NETBIOS is queried
-  to get the missing data.*
+  either the host name (*not* the FQDN) of the SMB server, its IP address, or
+  both in a `tuple`. *if either the IP address or the host name is not given,
+  NETBIOS is queried to get the missing data.*
 ``user``
   the username to connect with, defaults to `'guest'` for anonymous connection.
 ``passwd``
