@@ -9,8 +9,8 @@
 .. |Codacy| image:: https://img.shields.io/codacy/grade/82d40d17b4734692a9e70c5af5cc2a5b/master.svg?style=flat-square&maxAge=300
    :target: https://www.codacy.com/app/althonos/fs.smbfs/dashboard
 
-.. |Travis| image:: https://img.shields.io/travis/althonos/fs.smbfs/master.svg?style=flat-square&maxAge=300
-   :target: https://travis-ci.org/althonos/fs.smbfs/branches
+.. |Travis| image:: https://img.shields.io/travis/com/althonos/fs.smbfs/master.svg?style=flat-square&maxAge=300
+   :target: https://travis-ci.com/althonos/fs.smbfs/branches
 
 .. |Codecov| image:: https://img.shields.io/codecov/c/github/althonos/fs.smbfs/master.svg?style=flat-square&maxAge=300
    :target: https://codecov.io/gh/althonos/fs.smbfs
@@ -96,7 +96,7 @@ Use ``fs.open_fs`` to open a filesystem with an SMB
 The opener can use either an IPv4 address or a NetBIOS hostname, using the
 `NetBIOS name service <https://en.wikipedia.org/wiki/NetBIOS#Name_service>`_
 to find the other token. Otherwise, if NetBIOS is not available, a new SMB
-connection can be established by using the IPv4 address and giving the 
+connection can be established by using the IPv4 address and giving the
 hostname with the ``hostname`` URL parameter.
 
 The following parameters can be passed as URL parameters: ``timeout``,
