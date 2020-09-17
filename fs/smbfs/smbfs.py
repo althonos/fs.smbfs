@@ -46,6 +46,8 @@ class SMBFS(FS):
             **[default: 137]**
         direct_tcp (int): set to True to attempt to connect directly to the
             server using TCP instead of NetBIOS. **[default: False]**
+        domain (str): the network domain to connect with, the workgroup on
+            windows. Usually safe to leave as empty string **[default: '']**
 
     Raises:
         `fs.errors.CreateFailed`: if the filesystem could not be created.
@@ -203,7 +205,7 @@ class SMBFS(FS):
         return Info(info)
 
     def __init__(self, host, username='guest', passwd='', timeout=15,
-                 port=None, name_port=137, direct_tcp=False):  # noqa: D102
+                 port=None, name_port=137, direct_tcp=False, domain=''):  # noqa: D102
         super(SMBFS, self).__init__()
 
         try:
@@ -225,6 +227,7 @@ class SMBFS(FS):
             self._username, self._password,
             self._client_name, self._server_name,
             is_direct_tcp=direct_tcp,
+            domain=domain,
         )
 
         connect_kw = dict(timeout=self._timeout)
