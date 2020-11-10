@@ -26,7 +26,7 @@ install:
 - pip install .[dev,test]
 
 script:
-- green
+- python -m unittest discover -vv
 
 after_script:
 - codecov
