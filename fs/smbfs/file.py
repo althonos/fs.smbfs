@@ -28,6 +28,7 @@ class SMBFile(io.RawIOBase):
             share (str): the name of the share this file is located on.
             smb_path (str): the path to the resource on the share.
             mode (fs.mode.Mode): the mode the file is opened with.
+            
         """
         self._fs = smb_fs
         self._mode = mode
@@ -53,6 +54,10 @@ class SMBFile(io.RawIOBase):
             return self._fs.getsize(join(self._share, self._smb_path))
         except errors.ResourceNotFound:
             return 0
+
+    @property
+    def mode(self):
+        return self._mode.to_platform_bin()
 
     def readable(self):  # noqa: D102
         return self._mode.reading
