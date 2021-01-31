@@ -31,6 +31,7 @@ class _Cursor(object):
             msg = "Cannot write {} bytes to buffer of size {} after position {}"
             raise IOError(msg.format(bytes_written, self.size, self.position))
         self.buffer[self.position:self.position+bytes_written] = b
+        self.position += bytes_written
         return bytes_written
 
 
