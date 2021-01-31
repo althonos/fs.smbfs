@@ -65,7 +65,7 @@ class SMBFS(FS):
         'invalid_path_chars': '\0"\[]:+|<>=;?,*',
         'network': True,
         'read_only': False,
-        'thread_safe': False, # FIXME: make that True
+        'thread_safe': True,
         'unicode_paths': True,
         'virtual': False,
     }
@@ -294,7 +294,8 @@ class SMBFS(FS):
             try:
                 info = self.getinfo(_path)
             except errors.ResourceNotFound:
-                self._smb.createDirectory(share, smb_path, self._timeout)
+                with self.lock():
+                    self._smb.createDirectory(share, smb_path, self._timeout)
             else:
                 if not (info.is_dir and recreate):
                     raise errors.DirectoryExists(path)
@@ -304,26 +305,27 @@ class SMBFS(FS):
     def openbin(self, path, mode='r', buffering=-1, **options):  # noqa: D102
         _path = self.validatepath(path)
         _mode = Mode(mode)
-
         _mode.validate_bin()
 
         # TODO: check for permissions before opening the file
 
-        if self.exists(_path):
-            if not self.isfile(path):
-                raise errors.FileExpected(path)
-            elif _mode.exclusive:
-                raise errors.FileExists(path)
-        elif not _mode.create:
-            raise errors.ResourceNotFound(path)
-        else:
-            if not self.getinfo(dirname(_path)).is_dir:
-                raise errors.DirectoryExpected(dirname(path))
-
-        share, smb_path = utils.split_path(_path)
-        if not smb_path:
-            raise errors.PermissionDenied("cannot open file in '/'")
-        return SMBFile(self, share, smb_path, _mode)
+        with self.lock():
+            # check the file is not a folder if it exists
+            if self.exists(_path):
+                if not self.isfile(path):
+                    raise errors.FileExpected(path)
+                elif _mode.exclusive:
+                    raise errors.FileExists(path)
+            elif not _mode.create:
+                raise errors.ResourceNotFound(path)
+            else:
+                if not self.getinfo(dirname(_path)).is_dir:
+                    raise errors.DirectoryExpected(dirname(path))
+            # open / create a new SMBFile
+            share, smb_path = utils.split_path(_path)
+            if not smb_path:
+                raise errors.PermissionDenied("cannot open file in '/'")
+            return SMBFile(self, share, smb_path, _mode)
 
     def listdir(self, path):  # noqa: D102
         return [f.name for f in self.scandir(path)]
@@ -335,35 +337,40 @@ class SMBFS(FS):
         _src_share, _src_smb_path = utils.split_path(_src_path)
         _dst_share, _dst_smb_path = utils.split_path(_dst_path)
 
-        if not self.getinfo(src_path).is_file:
-            raise errors.FileExpected(src_path)
+        # Check the source exists and is a file
+        with self.lock():
+            if not self.getinfo(src_path).is_file:
+                raise errors.FileExpected(src_path)
 
         # Cannot rename across shares
         if _src_share != _dst_share: # pragma: no cover
-            super(SMBFS, self).move(src_path, dst_path, overwrite=overwrite)
+            return super(SMBFS, self).move(src_path, dst_path, overwrite=overwrite)
 
-        # Rename in the same share
-        else:
-
-            # Check the parent of dst_path exists and is not a file
-            if not self.getinfo(dirname(dst_path)).is_dir:
-                raise errors.DirectoryExpected(dirname(dst_path))
-
-            # Check the destination does not exist
-            if self.exists(dst_path):
-                if not overwrite:
-                    raise errors.DestinationExists(dst_path)
-                else:
-                    self.remove(dst_path)
-
+        # Check the parent of dst_path exists and is not a file
+        if not self.getinfo(dirname(dst_path)).is_dir:
+            raise errors.DirectoryExpected(dirname(dst_path))
+        # Check the destination does not exist
+        if self.exists(dst_path):
+            if overwrite:
+                self.remove(dst_path)
+            else:
+                raise errors.DestinationExists(dst_path)
+        # Rename with PySMB
+        with self.lock():
             self._smb.rename(
-                _src_share, _src_smb_path, _dst_smb_path, timeout=self._timeout)
+                _src_share,
+                _src_smb_path,
+                _dst_smb_path,
+                timeout=self._timeout
+            )
 
     def scandir(self, path, namespaces=None, page=None):  # noqa: D102
         _path = self.validatepath(path)
         namespaces = namespaces or ()
-        iter_info = self._scanshares(namespaces) if _path in '/' \
-               else self._scandir(path, namespaces)
+        if _path in '/':
+            iter_info = self._scanshares(namespaces)
+        else:
+            iter_info = self._scandir(path, namespaces)
         if page is not None:
             start, end = page
             iter_info = itertools.islice(iter_info, start, end)
@@ -371,7 +378,8 @@ class SMBFS(FS):
 
     def _get_security(self, share, path):
         try:
-            return self._smb.getSecurity(share, path)
+            with self.lock():
+                return self._smb.getSecurity(share, path)
         except smb.base.NotReadyError:
             return None
 
@@ -385,14 +393,15 @@ class SMBFS(FS):
                 only.
         """
         sd = None
-        for device in self._smb.listShares():
+        with self.lock():
+            devices = self._smb.listShares()
+        for device in devices:
             if device.type == device.DISK_TREE:
                 if 'access' in namespaces:
                     sd = self._get_security(device.name, '/')
-                info = self._make_info_from_shared_file(
-                    self._smb.getAttributes(device.name, '/'),
-                    sd, namespaces
-                )
+                with self.lock():
+                    attr = self._smb.getAttributes(device.name, '/')
+                info = self._make_info_from_shared_file(attr, sd, namespaces)
                 info.raw['basic']['name'] = device.name
                 yield info
 
@@ -412,22 +421,25 @@ class SMBFS(FS):
         elif not self.isdir(path):
             raise errors.ResourceNotFound(path)
         share, smb_path = utils.split_path(self.validatepath(path))
-        for shared_file in self._smb.listPath(share, smb_path):
+        with self.lock():
+            shared_files = self._smb.listPath(share, smb_path)
+        for shared_file in shared_files:
             if shared_file.filename not in '..':
                 if 'access' in namespaces:
                     sd = self._get_security(
-                        share, join(smb_path, shared_file.filename))
+                        share,
+                        join(smb_path, shared_file.filename)
+                    )
                 yield self._make_info_from_shared_file(
                     shared_file, sd, namespaces)
 
     def remove(self, path):  # noqa: D102
         _path = self.validatepath(path)
-
         if not self.getinfo(_path).is_file:
             raise errors.FileExpected(path)
-
         share, smb_path = utils.split_path(_path)
-        self._smb.deleteFiles(share, smb_path)
+        with self.lock():
+            self._smb.deleteFiles(share, smb_path)
 
     def removedir(self, path):  # noqa: D102
         _path = self.validatepath(path)
@@ -446,7 +458,8 @@ class SMBFS(FS):
             raise errors.PermissionDenied(
                 msg="cannot remove share '{}'".format(share))
 
-        self._smb.deleteDirectory(share, smb_path)
+        with self.lock():
+            self._smb.deleteDirectory(share, smb_path)
 
     def geturl(self, path, purpose='download'):  # noqa: D102
         _path = self.validatepath(path)
@@ -468,7 +481,8 @@ class SMBFS(FS):
             raise errors.ResourceNotFound(path)
 
         try:
-            shared_file = self._smb.getAttributes(share, smb_path)
+            with self.lock():
+                shared_file = self._smb.getAttributes(share, smb_path)
         except smb.smb_structs.OperationFailure:
             raise errors.ResourceNotFound(path)
 
@@ -512,11 +526,12 @@ class SMBFS(FS):
         """
         _path = self.validatepath(path)
 
-        if self.gettype(path) != ResourceType.file:
+        if not self.getinfo(path).is_file:
             raise errors.FileExpected(path)
 
         share, smb_path = utils.split_path(_path)
-        self._smb.retrieveFile(share, smb_path, file, timeout=self._timeout)
+        with self.lock():
+            self._smb.retrieveFile(share, smb_path, file, timeout=self._timeout)
 
     def upload(self, path, file, chunk_size=None, **options):
         """Set a file to the contents of a binary file object.
@@ -556,7 +571,8 @@ class SMBFS(FS):
         if not smb_path:
             raise errors.PermissionDenied("cannot open file in '/'")
 
-        self._smb.storeFile(share, smb_path, file, timeout=self._timeout)
+        with self.lock():
+            self._smb.storeFile(share, smb_path, file, timeout=self._timeout)
 
     def readbytes(self, path):  # noqa: D102
         buffer = io.BytesIO()
