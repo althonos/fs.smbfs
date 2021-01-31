@@ -28,9 +28,9 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
 
     def make_fs(self):
         self.dir = fs.path.join('data', uuid.uuid4().hex)
-        smbfs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
-        smbfs.makedirs(self.dir, recreate=True)
-        return smbfs.opendir(self.dir, factory=ClosingSubFS)
+        self.smbfs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        self.smbfs.makedirs(self.dir, recreate=True)
+        return self.smbfs.opendir(self.dir, factory=ClosingSubFS)
 
     @unittest.skip("the filesystem is not case sensitive")
     def test_case_sensitive(self):
@@ -61,6 +61,11 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             fs.errors.PermissionDenied,
             self.fs.openbin, '/abc', 'w'
         )
+
+    def test_openbin_error(self):
+        self.fs.touch("abc")
+        with mock.patch.object(self.smbfs, "_new_connection", side_effect=IOError):
+            self.assertRaises(fs.errors.OperationFailed, self.fs.openbin, "abc")
 
     def test_makedir_root(self):
         self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')

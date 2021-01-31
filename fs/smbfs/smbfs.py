@@ -222,27 +222,41 @@ class SMBFS(FS):
         self._client_name = socket.gethostname()
         self._username = username
         self._password = passwd
+        self._direct_tcp = direct_tcp
+        self._domain = domain
+        self._connect_kw = dict(timeout=self._timeout)
+        if self._server_port is not None:
+            self._connect_kw['port'] = self._server_port
 
         self._smb = smb.SMBConnection.SMBConnection(
             self._username, self._password,
             self._client_name, self._server_name,
-            is_direct_tcp=direct_tcp,
-            domain=domain,
+            is_direct_tcp=self._direct_tcp,
+            domain=self._domain,
         )
 
-        connect_kw = dict(timeout=self._timeout)
-        if self._server_port is not None:
-            connect_kw['port'] = self._server_port
-
         try:
-            self._smb.connect(self._server_ip, **connect_kw)
+            self._smb = self._new_connection()
         except (IOError, OSError):
             raise errors.CreateFailed("could not connect to '{}'".format(host))
 
         self._shares = {
-            share.name for share in self._smb.listShares()
-                if share.type == share.DISK_TREE
+            share.name
+            for share in self._smb.listShares()
+            if share.type == share.DISK_TREE
         }
+
+    def _new_connection(self):
+        con = smb.SMBConnection.SMBConnection(
+            self._username,
+            self._password,
+            self._client_name,
+            self._server_name,
+            is_direct_tcp=self._direct_tcp,
+            domain=self._domain,
+        )
+        con.connect(self._server_ip, **self._connect_kw)
+        return con
 
     def close(self):  # noqa: D102
         if not self.isclosed():

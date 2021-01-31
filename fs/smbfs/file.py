@@ -51,10 +51,14 @@ class SMBFile(io.RawIOBase):
         """
         self._fs = smb_fs
         self._mode = mode
-        self._smb = smb_fs._smb   # TODO: clone the connection instead of using it multiple times
         self._share = share
         self._smb_path = smb_path
         self._position = self._size() if mode.appending else 0
+
+        try:
+            self._smb = smb_fs._new_connection()
+        except (IOError, OSError):
+            raise errors.OperationFailed("could not create new connection")
 
         try:
             if mode.truncate:
@@ -73,6 +77,10 @@ class SMBFile(io.RawIOBase):
             return self._fs.getsize(join(self._share, self._smb_path))
         except errors.ResourceNotFound:
             return 0
+
+    def close(self):
+        super(SMBFile, self).close()
+        self._smb.close()
 
     @property
     def mode(self):
