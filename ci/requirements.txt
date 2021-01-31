@@ -1,7 +1,0 @@
-coverage
-codecov
-codacy-coverage
-green
-pip
-twine
-wheel
