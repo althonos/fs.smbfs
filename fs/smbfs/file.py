@@ -28,7 +28,7 @@ class SMBFile(io.RawIOBase):
             share (str): the name of the share this file is located on.
             smb_path (str): the path to the resource on the share.
             mode (fs.mode.Mode): the mode the file is opened with.
-            
+
         """
         self._fs = smb_fs
         self._mode = mode
@@ -72,6 +72,18 @@ class SMBFile(io.RawIOBase):
         )
         self._position += bytes_read
         return handle.getvalue()
+
+    def readinto(self, buffer):
+        if not self._mode.reading:
+            raise IOError('File not open for reading')
+        handle = io.BytesIO()
+        _, bytes_read = self._smb.retrieveFileFromOffset(
+            service_name=self._share, path=self._smb_path, file_obj=handle,
+            offset=self._position, max_length=len(buffer), timeout=self._fs._timeout,
+        )
+        self._position += bytes_read
+        buffer[:bytes_read] = handle.getbuffer()
+        return bytes_read
 
     def seekable(self):  # noqa: D102
         return True
