@@ -16,6 +16,24 @@ from ..enums import Seek
 __all__ = ['SMBFile']
 
 
+class _Cursor(object):
+    """A file-like wrapper for binary buffers.
+    """
+
+    def __init__(self, buffer):
+        self.buffer = buffer
+        self.position = 0
+        self.size = len(buffer)
+
+    def write(self, b):
+        bytes_written = len(b)
+        if self.position + bytes_written > self.size:
+            msg = "Cannot write {} bytes to buffer of size {} after position {}"
+            raise IOError(msg.format(bytes_written, self.size, self.position))
+        self.buffer[self.position:self.position+bytes_written] = b
+        return bytes_written
+
+
 class SMBFile(io.RawIOBase):
     """A file on an SMB server.
     """
@@ -74,16 +92,14 @@ class SMBFile(io.RawIOBase):
         return handle.getvalue()
 
     def readinto(self, buffer):  # noqa: D102
-        # FIXME: rewrite a zero-copy wrapper if possible.
         if not self._mode.reading:
             raise IOError('File not open for reading')
-        handle = io.BytesIO()
+        handle = _Cursor(buffer) #io.BytesIO()
         _, bytes_read = self._smb.retrieveFileFromOffset(
             service_name=self._share, path=self._smb_path, file_obj=handle,
             offset=self._position, max_length=len(buffer), timeout=self._fs._timeout,
         )
         self._position += bytes_read
-        buffer[:bytes_read] = handle.getbuffer()
         return bytes_read
 
     def seekable(self):  # noqa: D102
