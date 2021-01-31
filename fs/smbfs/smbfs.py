@@ -228,13 +228,6 @@ class SMBFS(FS):
         if self._server_port is not None:
             self._connect_kw['port'] = self._server_port
 
-        self._smb = smb.SMBConnection.SMBConnection(
-            self._username, self._password,
-            self._client_name, self._server_name,
-            is_direct_tcp=self._direct_tcp,
-            domain=self._domain,
-        )
-
         try:
             self._smb = self._new_connection()
         except (IOError, OSError):
@@ -442,6 +435,13 @@ class SMBFS(FS):
                 msg="cannot remove share '{}'".format(share))
 
         self._smb.deleteDirectory(share, smb_path)
+
+    def geturl(self, path, purpose='download'):  # noqa: D102
+        _path = self.validatepath(path)
+        if purpose != 'download':
+            raise errors.NoURL(path, purpose)
+        return "smb://{}@{}:{}{}".format(
+            self._username, self._server_name, self._server_port, _path)
 
     def getinfo(self, path, namespaces=None):  # noqa: D102
         _path = self.validatepath(path)
