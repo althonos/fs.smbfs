@@ -8,6 +8,7 @@ import socket
 import itertools
 
 import nmb.NetBIOS
+import six
 import smb.SMBConnection
 import smb.smb_constants
 import smb.security_descriptors
@@ -251,11 +252,21 @@ class SMBFS(FS):
         con.connect(self._server_ip, **self._connect_kw)
         return con
 
-    def close(self):  # noqa: D102
-        if not self.isclosed():
-            if hasattr(self, "_smb"):
-                self._smb.close()
-        super(SMBFS, self).close()
+    if six.PY2:
+
+        def close(self):  # noqa: D102
+            if not self.isclosed():
+                if hasattr(self, "_smb"):
+                    self._smb.close()
+            super(SMBFS, self).close()
+
+    else:
+
+        def close(self): # noqa: D102
+            if not self.isclosed():
+                if hasattr(self, "_smb"):
+                    self._smb.close()
+            super().close()
 
     def makedir(self, path, permissions=None, recreate=False):  # noqa: D102
         _path = self.validatepath(path)
