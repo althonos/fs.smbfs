@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [v0.7.0]: https://github.com/althonos/fs.smbfs/compare/v0.6.4...v0.7.0
 
 ### Added
-- `domain` argument support in SMB FS URLs (@Vegemash [#17](https://github.com/althonos/fs.smbfs/pull/17)).
+- `domain` argument to specify the Windows network domain in `SMBFS.__init__` (@Vegemash [#17](https://github.com/althonos/fs.smbfs/pull/17)).
 
 
 ## [v0.6.4] - 2020-09-05
@@ -80,14 +80,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [v0.6.2]: https://github.com/althonos/fs.smbfs/compare/v0.6.1...v0.6.2
 
 ### Added
-- Note to `README.rst` that the `host` parameter to `SMBFS` should *not* a
-  [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name)
-  (@mivade [#13](https://github.com/althonos/fs.smbfs/pull/13)).
+- Note to `README.rst` that the `host` parameter to `SMBFS` should *not* a [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) (@mivade [#13](https://github.com/althonos/fs.smbfs/pull/13)).
 
 ### Fixed
-- `SMBFS.__make_access_from_sd` incorrectly assuming that the *everyone*
-  [ACE](https://docs.microsoft.com/en-us/windows/win32/secauthz/access-control-entries)
-  exists (@telamonian [#11](https://github.com/althonos/fs.smbfs/pull/11))
+- `SMBFS.__make_access_from_sd` incorrectly assuming that the *everyone* [ACE](https://docs.microsoft.com/en-us/windows/win32/secauthz/access-control-entries) exists (@telamonian [#11](https://github.com/althonos/fs.smbfs/pull/11))
 
 
 ## [v0.6.1] - 2020-04-14
