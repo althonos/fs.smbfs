@@ -2,11 +2,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import sys
-import time
+import io
 import shutil
-import unittest
+import sys
 import tempfile
+import time
+import unittest
 import uuid
 
 import smb.base
@@ -175,6 +176,11 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         info = self.fs.getinfo('test.txt', namespaces=['basic', 'smb'])
         self.assertFalse(info.get('smb', 'hidden'))
         self.assertFalse(info.get('smb', 'system'))
+
+    def test_openbin_w_readinto(self):
+        with self.fs.openbin("abc", "w") as f:
+            self.assertRaises(IOError, f.readinto, io.BytesIO())
+
 
 
 @unittest.skipUnless(utils.DOCKER, "docker service unreachable.")

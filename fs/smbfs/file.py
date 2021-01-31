@@ -73,7 +73,8 @@ class SMBFile(io.RawIOBase):
         self._position += bytes_read
         return handle.getvalue()
 
-    def readinto(self, buffer):
+    def readinto(self, buffer):  # noqa: D102
+        # FIXME: rewrite a zero-copy wrapper if possible.
         if not self._mode.reading:
             raise IOError('File not open for reading')
         handle = io.BytesIO()
