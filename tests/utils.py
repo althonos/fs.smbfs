@@ -39,7 +39,7 @@ if DOCKER:
     )
     atexit.register(smb_container.remove)
     atexit.register(smb_container.kill)
-    time.sleep(15)
+    time.sleep(5)
 
 if six.PY2:
     def py2expectedFailure(func):
