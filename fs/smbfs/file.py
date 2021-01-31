@@ -103,7 +103,7 @@ class SMBFile(io.RawIOBase):
     def readinto(self, buffer):  # noqa: D102
         if not self._mode.reading:
             raise IOError('File not open for reading')
-        handle = _Cursor(buffer) #io.BytesIO()
+        handle = _Cursor(buffer)
         _, bytes_read = self._smb.retrieveFileFromOffset(
             service_name=self._share, path=self._smb_path, file_obj=handle,
             offset=self._position, max_length=len(buffer), timeout=self._fs._timeout,

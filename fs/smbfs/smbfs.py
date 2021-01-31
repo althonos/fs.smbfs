@@ -4,8 +4,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import socket
+import io
 import itertools
+import socket
 
 import nmb.NetBIOS
 import six
@@ -368,7 +369,7 @@ class SMBFS(FS):
             iter_info = itertools.islice(iter_info, start, end)
         return iter_info
 
-    def _getSecurity(self, share, path):
+    def _get_security(self, share, path):
         try:
             return self._smb.getSecurity(share, path)
         except smb.base.NotReadyError:
@@ -387,7 +388,7 @@ class SMBFS(FS):
         for device in self._smb.listShares():
             if device.type == device.DISK_TREE:
                 if 'access' in namespaces:
-                    sd = self._getSecurity(device.name, '/')
+                    sd = self._get_security(device.name, '/')
                 info = self._make_info_from_shared_file(
                     self._smb.getAttributes(device.name, '/'),
                     sd, namespaces
@@ -414,7 +415,7 @@ class SMBFS(FS):
         for shared_file in self._smb.listPath(share, smb_path):
             if shared_file.filename not in '..':
                 if 'access' in namespaces:
-                    sd = self._getSecurity(
+                    sd = self._get_security(
                         share, join(smb_path, shared_file.filename))
                 yield self._make_info_from_shared_file(
                     shared_file, sd, namespaces)
@@ -472,7 +473,7 @@ class SMBFS(FS):
             raise errors.ResourceNotFound(path)
 
         if 'access' in namespaces:
-            sd = self._getSecurity(share, smb_path)
+            sd = self._get_security(share, smb_path)
 
         info = self._make_info_from_shared_file(shared_file, sd, namespaces)
         if not smb_path:
@@ -556,3 +557,15 @@ class SMBFS(FS):
             raise errors.PermissionDenied("cannot open file in '/'")
 
         self._smb.storeFile(share, smb_path, file, timeout=self._timeout)
+
+    def readbytes(self, path):  # noqa: D102
+        buffer = io.BytesIO()
+        self.download(path, buffer)
+        return buffer.getvalue()
+
+    def writebytes(self, path, contents):  # noqa: D102
+        buffer = io.BytesIO(contents)
+        self.upload(path, buffer)
+
+    def hassyspath(self, path):  # noqa: D102
+        return False
