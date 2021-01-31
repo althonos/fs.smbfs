@@ -470,9 +470,78 @@ class SMBFS(FS):
         return info
 
     def setinfo(self, path, info):  # noqa: D102
+        # TODO ? pysmb doesn't seem to support setting attributes.
         _path = self.validatepath(path)
-
         if not self.exists(_path):
             raise errors.ResourceNotFound(path)
 
-        # TODO ? pysmb doesn't seem to support setting attributes.
+    def download(self, path, file, chunk_size=None, **options):
+        """Copy a file from the filesystem to a file-like object.
+
+        This method uses the `smb.SMBConnection.SMBConnection.retrieveFile`
+        method without creating a new connection, which should be more
+        efficient than opening and reading from a file with `openbin`.
+
+        Arguments:
+            path (str): A path on the filesystem.
+            file (file-like): A file-like object open for writing in
+                binary mode.
+            chunk_size (int, optional): Ignored, kept for compatibility
+                with the `fs.base.FS.upload` signature.
+
+        Note that the file object ``file`` will *not* be closed by this
+        method. Take care to close it after this method completes
+        (ideally with a context manager).
+
+        Example:
+            >>> with open('starwars.mov', 'wb') as write_file:
+            ...     my_fs.download('/movies/starwars.mov', write_file)
+
+        """
+        _path = self.validatepath(path)
+
+        if self.gettype(path) != ResourceType.file:
+            raise errors.FileExpected(path)
+
+        share, smb_path = utils.split_path(_path)
+        self._smb.retrieveFile(share, smb_path, file, timeout=self._timeout)
+
+    def upload(self, path, file, chunk_size=None, **options):
+        """Set a file to the contents of a binary file object.
+
+        This method uses the `smb.SMBConnection.SMBConnection.storeFile`
+        method without creating a new connection, which should be more
+        efficient than opening and writing to a file with `openbin`.
+
+        Arguments:
+          path (str): A path on the filesystem.
+          file (io.IOBase): A file object open for reading in
+              binary mode.
+          chunk_size (int, optional): Ignored, kept for compatibility
+              with the `fs.base.FS.download` signature.
+
+        Raises:
+          fs.errors.ResourceNotFound: If a parent directory of
+              ``path`` does not exist.
+
+        Note that the file object ``file`` will *not* be closed by this
+        method. Take care to close it after this method completes
+        (ideally with a context manager).
+
+        Example:
+          >>> with open('~/movies/starwars.mov', 'rb') as read_file:
+          ...     my_fs.upload('starwars.mov', read_file)
+
+        """
+        _path = self.validatepath(path)
+
+        if self.isdir(_path):
+            raise errors.FileExpected(path)
+        elif not self.isdir(dirname(_path)):
+            raise errors.ResourceNotFound(dirname(path))
+
+        share, smb_path = utils.split_path(_path)
+        if not smb_path:
+            raise errors.PermissionDenied("cannot open file in '/'")
+
+        self._smb.storeFile(share, smb_path, file, timeout=self._timeout)

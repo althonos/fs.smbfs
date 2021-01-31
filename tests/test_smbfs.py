@@ -45,21 +45,21 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             )
 
     def test_write_denied(self):
-        self.fs = fs.open_fs('smb://127.0.0.1/data')
+        _fs = fs.open_fs('smb://127.0.0.1/data')
         self.assertRaises(
             fs.errors.PermissionDenied,
-            self.fs.openbin, '/test.txt', 'w'
+            _fs.openbin, '/test.txt', 'w'
         )
 
     def test_openbin_root(self):
-        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
         self.assertRaises(
             fs.errors.ResourceNotFound,
-            self.fs.openbin, '/abc'
+            _fs.openbin, '/abc'
         )
         self.assertRaises(
             fs.errors.PermissionDenied,
-            self.fs.openbin, '/abc', 'w'
+            _fs.openbin, '/abc', 'w'
         )
 
     def test_openbin_error(self):
@@ -68,20 +68,20 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             self.assertRaises(fs.errors.OperationFailed, self.fs.openbin, "abc")
 
     def test_makedir_root(self):
-        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
         self.assertRaises(
             fs.errors.PermissionDenied,
-            self.fs.makedir, '/abc'
+            _fs.makedir, '/abc'
         )
 
     def test_removedir_root(self):
-        self.fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
 
         scandir = utils.mock.MagicMock(return_value=iter([]))
-        with utils.mock.patch.object(self.fs, 'scandir', scandir):
+        with utils.mock.patch.object(_fs, 'scandir', scandir):
             self.assertRaises(
                 fs.errors.PermissionDenied,
-                self.fs.removedir, '/data'
+                _fs.removedir, '/data'
             )
 
     def test_seek(self):
@@ -186,6 +186,20 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         with self.fs.openbin("abc", "w") as f:
             self.assertRaises(IOError, f.readinto, io.BytesIO())
 
+    def test_download_error(self):
+        self.fs.makedir("/abc")
+        self.assertRaises(fs.errors.FileExpected, self.fs.download, "/abc", io.BytesIO())
+        self.assertRaises(fs.errors.ResourceNotFound, self.fs.download, "/def", io.BytesIO())
+        self.assertRaises(fs.errors.ResourceNotFound, self.fs.download, "/def/ghi", io.BytesIO())
+
+    def test_upload_root(self):
+        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        self.assertRaises(fs.errors.PermissionDenied, _fs.upload, "/abc", io.BytesIO())
+
+    def test_upload_error(self):
+        self.fs.makedir("/abc")
+        self.assertRaises(fs.errors.FileExpected, self.fs.upload, "/abc", io.BytesIO())
+        self.assertRaises(fs.errors.ResourceNotFound, self.fs.upload, "/def/ghi", io.BytesIO())
 
 
 @unittest.skipUnless(utils.DOCKER, "docker service unreachable.")
