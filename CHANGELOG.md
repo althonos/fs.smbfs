@@ -7,13 +7,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v0.7.4...HEAD
+[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.0...HEAD
+
+
+## [v1.0.0] - 2021-12-31
+
+[v1.0.0]: https://github.com/althonos/fs.smbfs/compare/v0.7.4...v1.0.0
 
 ### Added
 - Explicit support for Python 3.9.
-- Missing `SMBFile.readinto` method using a zero-copy implementation.
-- `SMBFile.mode` property to expose the mode the file was created with.
 - This changelog file.
+- `SMBFS.upload` (resp. `download`) implementation using the `SMBConnection.storeFile` (resp. `retrieveFile`) method.
+- `SMBFS.geturl` implementation for the `download` purpose.
+- `SMBFile.mode` property to expose the mode the file was created with.
+- `SMBFile.readinto` method using a zero-copy implementation.
+
+### Changed
+- `SMBFS.openbin` will open a new connection for every new file.
+- `SMBFS.readbytes` (resp. `writebytes`) now uses `SMBFS.download` (resp. `upload`).
+- Mark the project as *Stable* in `setup.cfg` classifiers.
+- Switched from Travis-CI and AppVeyor to GitHub Actions for continuous integration.
+- Rewrote `README.rst` in Markdown format.
 
 
 ## [v0.7.4] - 2020-12-10
