@@ -9,15 +9,11 @@ from .smbfs import SMBFS
 __all__ = ['SMBFS']
 
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2017-2020 Martin Larralde"
+__copyright__ = "Copyright (c) 2017-2021 Martin Larralde"
 __author__ = "Martin Larralde <martin.larralde@embl.de>"
-__version__ = 'dev'
-
-# Dynamically get the version of the installed module
-try:
-    import pkg_resources
-    __version__ = pkg_resources.get_distribution(__name__).version
-except Exception: # pragma: no cover
-    pkg_resources = None
-finally:
-    del pkg_resources
+__version__ = (
+    __import__("pkg_resources")
+    .resource_string(__name__, "_version.txt")
+    .strip()
+    .decode("ascii")
+)
