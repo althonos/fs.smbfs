@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.0...HEAD
 
 
-## [v1.0.0] - 2021-12-31
+## [v1.0.0] - 2021-01-31
 
 [v1.0.0]: https://github.com/althonos/fs.smbfs/compare/v0.7.4...v1.0.0
 
