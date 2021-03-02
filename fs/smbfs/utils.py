@@ -57,11 +57,11 @@ def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
         >>> from fs.smbfs.utils import get_hostname_and_ip as ghip
         >>> from nmb.NetBIOS import NetBIOS
         >>> nb = NetBIOS()
-        >>> ghip("SAMBAALPINE")
+        >>> ghip("SAMBAALPINE", nb)
         ("SAMBAALPINE", "127.0.0.1")
-        >>> ghip("localhost")
+        >>> ghip("localhost", nb)
         ("SAMBAALPINE", "localhost")
-        >>> ghip(("localhost", "SAMBAALPINE"))
+        >>> ghip(("localhost", "SAMBAALPINE"), nb)
         ("SAMBAALPINE", "localhost")
     """
 
