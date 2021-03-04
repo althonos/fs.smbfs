@@ -210,14 +210,18 @@ class SMBFS(FS):
                  port=None, name_port=137, direct_tcp=False, domain=''):  # noqa: D102
         super(SMBFS, self).__init__()
 
-        try:
-            self._server_name, self._server_ip = utils.get_hostname_and_ip(
-                host, self.NETBIOS,
-                timeout=timeout,
-                name_port=name_port
-            )
-        except Exception:
-            raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
+        if direct_tcp:
+            self._server_name = host
+            self._server_ip = host
+        else:
+            try:
+                self._server_name, self._server_ip = utils.get_hostname_and_ip(
+                    host, self.NETBIOS,
+                    timeout=timeout,
+                    name_port=name_port
+                )
+            except Exception:
+                raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
 
         self._timeout = timeout
         self._server_port = port
