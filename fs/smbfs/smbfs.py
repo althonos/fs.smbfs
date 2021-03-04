@@ -211,8 +211,12 @@ class SMBFS(FS):
         super(SMBFS, self).__init__()
 
         if direct_tcp:
-            self._server_name = host
-            self._server_ip = host
+            if type(host) == tuple:
+                self._server_name = host[0]
+                self._server_ip = host[0]
+            else:
+                self._server_name = host
+                self._server_ip = host
         else:
             try:
                 self._server_name, self._server_ip = utils.get_hostname_and_ip(
