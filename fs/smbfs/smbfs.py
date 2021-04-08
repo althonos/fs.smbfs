@@ -236,7 +236,7 @@ class SMBFS(FS):
             raise errors.CreateFailed("could not connect to '{}'".format(host))
 
         self._shares = {
-            share.name.casefold()
+            share.name.lower()
             for share in self._smb.listShares()
             if share.type == share.DISK_TREE
         }
@@ -482,7 +482,7 @@ class SMBFS(FS):
         # different casing.
         # Note: This currently only handles the python3.3+ implementations. Need
         # to find a way to handle it for older python versions.
-        elif share.casefold() not in self._shares:
+        elif share.lower() not in self._shares:
             raise errors.ResourceNotFound(path)
 
         try:
