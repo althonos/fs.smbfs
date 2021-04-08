@@ -236,7 +236,7 @@ class SMBFS(FS):
             raise errors.CreateFailed("could not connect to '{}'".format(host))
 
         self._shares = {
-            share.name
+            share.name.casefold()
             for share in self._smb.listShares()
             if share.type == share.DISK_TREE
         }
@@ -477,7 +477,12 @@ class SMBFS(FS):
 
         if not share:
             return self._make_root_info(namespaces)
-        elif share not in self._shares:
+        # Shares are case insensitive, however the lookup in python is not.
+        # This causes issues when looking for shares that exist, albeit with 
+        # different casing.
+        # Note: This currently only handles the python3.3+ implementations. Need
+        # to find a way to handle it for older python versions.
+        elif share.casefold() not in self._shares:
             raise errors.ResourceNotFound(path)
 
         try:
