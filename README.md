@@ -104,6 +104,7 @@ The following people contributed to `fs.sshfs`:
 - [Isaac Jackson](https://github.com/Vegemash)
 - [Max Klein](https://github.com/telamonian)
 - [Francesco Frassinelli](https://github.com/frafra)
+- [Josiah Witheford](https://github.com/josiahwitheford)
 
 This project obviously owes a lot to the PyFilesystem2 project and
 [all its contributors](https://github.com/PyFilesystem/pyfilesystem2/blob/master/CONTRIBUTORS.md).
