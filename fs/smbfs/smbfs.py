@@ -215,14 +215,30 @@ class SMBFS(FS):
                  port=None, name_port=137, direct_tcp=False, domain=''):  # noqa: D102
         super(SMBFS, self).__init__()
 
-        try:
-            self._server_name, self._server_ip = utils.get_hostname_and_ip(
-                host, self.NETBIOS,
-                timeout=timeout,
-                name_port=name_port
-            )
-        except Exception:
-            raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
+        self._sock_family = socket.AF_INET
+        if direct_tcp:
+            if type(host) == tuple:
+                host = host[0]
+            self._server_name = host
+            self._server_ip = host
+            try:
+                if not port:
+                    port = 139
+                s = socket.create_connection((self._server_ip, port))
+                if s.proto == 6:
+                    self._sock_family = socket.AF_INET6
+                s.close()
+            except:
+                raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
+        else:
+            try:
+                self._server_name, self._server_ip = utils.get_hostname_and_ip(
+                    host, self.NETBIOS,
+                    timeout=timeout,
+                    name_port=name_port
+                )
+            except Exception:
+                raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
 
         self._timeout = timeout
         self._server_port = port
@@ -255,7 +271,7 @@ class SMBFS(FS):
             is_direct_tcp=self._direct_tcp,
             domain=self._domain,
         )
-        con.connect(self._server_ip, **self._connect_kw)
+        con.connect(self._server_ip, sock_family = self._sock_family, **self._connect_kw)
         return con
 
     if six.PY2:
