@@ -217,7 +217,7 @@ class SMBFS(FS):
 
         try:
             self._server_name, self._server_ip = utils.get_hostname_and_ip(
-                host, self.NETBIOS,
+                host, None if direct_tcp else self.NETBIOS,
                 timeout=timeout,
                 name_port=name_port
             )
