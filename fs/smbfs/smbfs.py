@@ -221,8 +221,11 @@ class SMBFS(FS):
                 timeout=timeout,
                 name_port=name_port
             )
-        except Exception:
-            raise errors.CreateFailed("could not get IP/host pair from '{}'".format(host))
+        except Exception as exc:
+            six.raise_from(
+                errors.CreateFailed("could not get IP/host pair from '{}'".format(host)),
+                exc
+            )
 
         self._timeout = timeout
         self._server_port = port
@@ -237,8 +240,11 @@ class SMBFS(FS):
 
         try:
             self._smb = self._new_connection()
-        except (IOError, OSError):
-            raise errors.CreateFailed("could not connect to '{}'".format(host))
+        except (IOError, OSError) as exc:
+            six.raise_from(
+                errors.CreateFailed("could not connect to '{}'".format(host)),
+                exc
+            )
 
         self._shares = {
             casefold(share.name)
