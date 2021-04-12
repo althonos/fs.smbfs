@@ -75,8 +75,13 @@ def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
     if (name is not None and is_ip(name)) or (ip is not None and not is_ip(ip)):
         name, ip = ip, name
 
+    # If direct connection, skip NetBIOS queries
+    if netbios is None:
+        name = name if name is not None else ip
+        ip = ip if ip is not None else name
+
     # If given an IP: find the SMB host name
-    if name is None and ip is not None:
+    elif name is None and ip is not None:
         response = netbios.queryIPForName(ip, timeout=timeout, port=name_port)
         if not response:
             raise RuntimeError("could not get name for IP: '{}'".format(ip))
@@ -90,7 +95,7 @@ def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
         ip = response[0]
 
     # Make sure we have both values
-    elif ip is None and name is None:
+    if ip is None and name is None:
        raise ValueError("Could not get host/IP pair for: '{}'".format(host))
 
     if six.PY2:

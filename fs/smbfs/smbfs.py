@@ -217,7 +217,7 @@ class SMBFS(FS):
 
         try:
             self._server_name, self._server_ip = utils.get_hostname_and_ip(
-                host, self.NETBIOS,
+                host, None if direct_tcp else self.NETBIOS,
                 timeout=timeout,
                 name_port=name_port
             )
@@ -483,7 +483,7 @@ class SMBFS(FS):
         if not share:
             return self._make_root_info(namespaces)
         # Shares are case insensitive, however the lookup in python is not.
-        # This causes issues when looking for shares that exist, albeit with 
+        # This causes issues when looking for shares that exist, albeit with
         # different casing.
         elif casefold(share) not in self._shares:
             raise errors.ResourceNotFound(path)

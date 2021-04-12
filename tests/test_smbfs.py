@@ -211,38 +211,59 @@ class TestSMBFSConnection(unittest.TestCase):
     def open_smbfs(self, host_token, port=None, direct_tcp=False):
         return SMBFS(host_token, self.user, self.pasw, port=port, direct_tcp=direct_tcp)
 
+    def assert_connected(self, smbfs):
+        try:
+            smbfs.touch("data/hello.txt")
+        except fs.errors.OperationFailed:
+            self.fail("could not create a file")
+
     @utils.py2expectedFailure
     def test_hostname(self):
         smbfs = self.open_smbfs("SAMBAALPINE")
+        self.assert_connected(smbfs)
 
     def test_ip(self):
         smbfs = self.open_smbfs("127.0.0.1")
+        self.assert_connected(smbfs)
+
+    @mock.patch.object(SMBFS, 'NETBIOS', mock.MagicMock())
+    def test_ip_direct_tcp(self):
+        smbfs = self.open_smbfs("127.0.0.1", direct_tcp=True)
+        self.assert_connected(smbfs)
+        SMBFS.NETBIOS.queryIPforName.assert_not_called()
+        SMBFS.NETBIOS.queryName.assert_not_called()
 
     @mock.patch.object(SMBFS, 'NETBIOS', mock.MagicMock())
     def test_hostname_and_ip(self):
         smbfs = self.open_smbfs(("SAMBAALPINE", "127.0.0.1"))
+        self.assert_connected(smbfs)
         SMBFS.NETBIOS.queryIPforName.assert_not_called()
         SMBFS.NETBIOS.queryName.assert_not_called()
 
     @mock.patch.object(SMBFS, 'NETBIOS', mock.MagicMock())
     def test_ip_and_hostname(self):
         smbfs = self.open_smbfs(("127.0.0.1", "SAMBAALPINE"))
+        self.assert_connected(smbfs)
         SMBFS.NETBIOS.queryIPforName.assert_not_called()
         SMBFS.NETBIOS.queryName.assert_not_called()
 
     def test_ip_and_none(self):
         smbfs = self.open_smbfs(("127.0.0.1", None))
+        self.assert_connected(smbfs)
 
     def test_none_and_ip(self):
         smbfs = self.open_smbfs((None, "127.0.0.1"))
+        self.assert_connected(smbfs)
 
     @utils.py2expectedFailure
     def test_hostname_and_none(self):
         smbfs = self.open_smbfs(("SAMBAALPINE", None))
+        self.assert_connected(smbfs)
 
     @utils.py2expectedFailure
     def test_none_and_hostname(self):
         smbfs = self.open_smbfs((None, "SAMBAALPINE"))
+        self.assert_connected(smbfs)
 
     def test_none_none(self):
         self.assertRaises(
@@ -258,10 +279,10 @@ class TestSMBFSConnection(unittest.TestCase):
 
     def test_default_smb_port(self):
         smbfs = self.open_smbfs("127.0.0.1")
-
         self.assertEqual(smbfs._smb.sock.getpeername()[1], 139)
+        self.assert_connected(smbfs)
 
     def test_explicit_smb_port(self):
-        smbfs = self.open_smbfs("127.0.0.1", port=445, direct_tcp=True)
-
+        smbfs = self.open_smbfs(("127.0.0.1", "SAMBAALPINE"), port=445, direct_tcp=True)
         self.assertEqual(smbfs._smb.sock.getpeername()[1], 445)
+        self.assert_connected(smbfs)
