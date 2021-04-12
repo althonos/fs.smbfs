@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.1...HEAD
+
+
+## [v1.0.1] - 2021-04-12
+
+[v1.0.1]: https://github.com/althonos/fs.smbfs/compare/v1.0.0...v1.0.1
+
+### Fixed
+- SMB share names are now matched case-insensitively ([#28](https://github.com/althonos/fs.smbfs/pull/28)).
+- When created with `direct_tcp=True`, `SMBFS` will not attempt to use NetBIOS anymore to find a missing IP/hostname ([#25](https://github.com/althonos/fs.smbfs/pull/25)). Closes [#24](https://github.com/althonos/fs.smbfs/issues/24). 
 
 
 ## [v1.0.0] - 2021-01-31
