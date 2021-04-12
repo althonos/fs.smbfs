@@ -483,7 +483,7 @@ class SMBFS(FS):
         if not share:
             return self._make_root_info(namespaces)
         # Shares are case insensitive, however the lookup in python is not.
-        # This causes issues when looking for shares that exist, albeit with 
+        # This causes issues when looking for shares that exist, albeit with
         # different casing.
         # Note: This currently only handles the python3.3+ implementations. Need
         # to find a way to handle it for older python versions.
