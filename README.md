@@ -19,7 +19,6 @@
 |:-|:-|:-|:-|
 | **six** | [![PyPI six](https://img.shields.io/pypi/v/six.svg?maxAge=300&style=flat-square)](https://pypi.python.org/pypi/six) | [![Source six]( https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=36000&style=flat-square )]( https://github.com/benjaminp/six) | [![License six](https://img.shields.io/pypi/l/six.svg?maxAge=36000&style=flat-square)](https://choosealicense.com/licenses/mit/) |
 | **PySMB** | [![PyPI pysmb](https://img.shields.io/pypi/v/pysmb.svg?maxAge=300&style=flat-square)](https://pypi.python.org/pypi/pysmb) | [![Source pysmb]( https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=36000&style=flat-square )]( https://github.com/miketeo/pysmb) | [![License pysmb](https://img.shields.io/pypi/l/pysmb.svg?maxAge=36000&style=flat-square)](https://choosealicense.com/licenses/zlib/) |
-| **property-cached** | [![License property](https://img.shields.io/pypi/v/property-cached.svg?maxAge=300&style=flat-square)](https://pypi.python.org/pypi/property-cached) | [![Source property]( https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=36000&style=flat-square )](https://github.com/althonos/property-cached) | [![License property]( https://img.shields.io/pypi/l/property-cached.svg?maxAge=36000&style=flat-square )]( https://choosealicense.com/licenses/bsd-3-clause/) |
 
 ## Installation
 
