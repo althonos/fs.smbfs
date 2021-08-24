@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.3...HEAD
+
+
+## [v1.0.3] - 2021-08-24
+
+[v1.0.3]: https://github.com/althonos/fs.smbfs/compare/v1.0.2...v1.0.3
+
+### Fixed
+- `SMBFS._meta['invalid_path_chars']` containing valid characters ([#32](https://github.com/althonos/fs.smbfs/issues/32)).
 
 
 ## [v1.0.2] - 2021-05-30
