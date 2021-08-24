@@ -67,7 +67,8 @@ class SMBFS(FS):
 
     _meta = {
         'case_insensitive': True,
-        'invalid_path_chars': '\0"\[]:+|<>=;?,*',
+        # https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-shares--directories--files--and-metadata
+        'invalid_path_chars': '"\\:|<>*?' + ''.join(map(chr, range(0x20))),
         'network': True,
         'read_only': False,
         'thread_safe': True,
