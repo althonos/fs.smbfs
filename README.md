@@ -95,7 +95,7 @@ situation.
 
 ## Credits
 
-`fs.smbfs` is developped and maintainted by:
+`fs.smbfs` is developed and maintained by:
 - [Martin Larralde](https://github.com/althonos)
 
 The following people contributed to `fs.sshfs`:
