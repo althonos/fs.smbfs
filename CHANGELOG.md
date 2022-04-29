@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.4...HEAD
+
+
+## [v1.0.4] - 2022-04-29
+
+[v1.0.4]: https://github.com/althonos/fs.smbfs/compare/v1.0.3...v1.0.4
+
+### Fixed
+- `SMBFS.geturl` producing invalid URLs when the `SMBFS` object was created without explicitly setting a port ([#35](https://github.com/althonos/fs.smbfs/issues/35)).
+
+### Added
+- `preserve_time` keyword argument to `SMBFS.move`.
 
 
 ## [v1.0.3] - 2021-08-24
