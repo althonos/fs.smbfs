@@ -31,7 +31,7 @@ else:
     casefold = str.casefold
 
 
-__all__ = ['SMBFS']
+__all__ = ["SMBFS"]
 
 
 class SMBFS(FS):
@@ -66,14 +66,14 @@ class SMBFS(FS):
     """
 
     _meta = {
-        'case_insensitive': True,
+        "case_insensitive": True,
         # https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-shares--directories--files--and-metadata
-        'invalid_path_chars': '"\\:|<>*?' + ''.join(map(chr, range(0x20))),
-        'network': True,
-        'read_only': False,
-        'thread_safe': True,
-        'unicode_paths': True,
-        'virtual': False,
+        "invalid_path_chars": '"\\:|<>*?' + "".join(map(chr, range(0x20))),
+        "network": True,
+        "read_only": False,
+        "thread_safe": True,
+        "unicode_paths": True,
+        "virtual": False,
     }
 
     #: The client used to communicate with the NetBIOS naming service.
@@ -94,46 +94,47 @@ class SMBFS(FS):
         """
         namespaces = namespaces or ()
 
-        info = {'basic': {
-            'name': shared_file.filename,
-            'is_dir': shared_file.isDirectory,
-        }}
+        info = {
+            "basic": {
+                "name": shared_file.filename,
+                "is_dir": shared_file.isDirectory,
+            }
+        }
 
-        if 'details' in namespaces:
-            info['details'] = {
-                'accessed': shared_file.last_access_time,
-                'created': shared_file.create_time,
-                'metadata_changed': shared_file.last_attr_change_time,
-                'modified': shared_file.last_write_time,
-                'size': shared_file.file_size,
-                'type': ResourceType.directory \
-                        if shared_file.isDirectory \
-                        else ResourceType.file,
+        if "details" in namespaces:
+            info["details"] = {
+                "accessed": shared_file.last_access_time,
+                "created": shared_file.create_time,
+                "metadata_changed": shared_file.last_attr_change_time,
+                "modified": shared_file.last_write_time,
+                "size": shared_file.file_size,
+                "type": ResourceType.directory
+                if shared_file.isDirectory
+                else ResourceType.file,
             }
 
-        if 'smb' in namespaces:
-            info['smb'] = {
+        if "smb" in namespaces:
+            info["smb"] = {
                 name: bool(shared_file.file_attributes & attr)
-                    for name, attr in {
-                        'archive': smb.smb_constants.ATTR_ARCHIVE,
-                        'compressed': smb.smb_constants.ATTR_COMPRESSED,
-                        'directory': smb.smb_constants.ATTR_DIRECTORY,
-                        'encrypted': smb.smb_constants.ATTR_ENCRYPTED,
-                        'hidden': smb.smb_constants.ATTR_HIDDEN,
-                        'normal': smb.smb_constants.ATTR_NORMAL,
-                        'not_content_indexed': \
-                            smb.smb_constants.ATTR_NOT_CONTENT_INDEXED,
-                        'offline': smb.smb_constants.ATTR_NOT_CONTENT_INDEXED,
-                        'read_only': smb.smb_constants.ATTR_READONLY,
-                        'reparse_point': smb.smb_constants.ATTR_REPARSE_POINT,
-                        'sparse': smb.smb_constants.ATTR_SPARSE,
-                        'system': smb.smb_constants.ATTR_SYSTEM,
-                        'temporary': smb.smb_constants.ATTR_TEMPORARY,
-                    }.items()
+                for name, attr in {
+                    "archive": smb.smb_constants.ATTR_ARCHIVE,
+                    "compressed": smb.smb_constants.ATTR_COMPRESSED,
+                    "directory": smb.smb_constants.ATTR_DIRECTORY,
+                    "encrypted": smb.smb_constants.ATTR_ENCRYPTED,
+                    "hidden": smb.smb_constants.ATTR_HIDDEN,
+                    "normal": smb.smb_constants.ATTR_NORMAL,
+                    "not_content_indexed": smb.smb_constants.ATTR_NOT_CONTENT_INDEXED,
+                    "offline": smb.smb_constants.ATTR_NOT_CONTENT_INDEXED,
+                    "read_only": smb.smb_constants.ATTR_READONLY,
+                    "reparse_point": smb.smb_constants.ATTR_REPARSE_POINT,
+                    "sparse": smb.smb_constants.ATTR_SPARSE,
+                    "system": smb.smb_constants.ATTR_SYSTEM,
+                    "temporary": smb.smb_constants.ATTR_TEMPORARY,
+                }.items()
             }
 
-        if 'access' in namespaces and sd is not None:
-            info['access'] = cls._make_access_from_sd(sd)
+        if "access" in namespaces and sd is not None:
+            info["access"] = cls._make_access_from_sd(sd)
 
         return Info(info)
 
@@ -157,43 +158,55 @@ class SMBFS(FS):
                   file Windows technically allows to open (since there is no
                   such thing as *other* groups in Windows).
         """
-        access = {'gid': str(sd.group), 'uid': str(sd.owner)}
+        access = {"gid": str(sd.group), "uid": str(sd.owner)}
 
         # Extract Access Control Entries corresponding to
         # * `everyone` (used for UNIX `others` mode)
         # * `owner` (used for UNIX `user` mode, falls back to `everyone`)
         # * `group` (used for UNIX `group` mode, falls back to `everyone`)
-        other_ace = next((ace for ace in sd.dacl.aces
-            if str(ace.sid).startswith(smb.security_descriptors.SID_EVERYONE)), None)
-        owner_ace = next((ace for ace in sd.dacl.aces
-            if str(ace.sid).startswith(str(sd.owner))), other_ace)
-        group_ace = next((ace for ace in sd.dacl.aces
-            if str(ace.sid).startswith(str(sd.group))), other_ace)
+        other_ace = next(
+            (
+                ace
+                for ace in sd.dacl.aces
+                if str(ace.sid).startswith(smb.security_descriptors.SID_EVERYONE)
+            ),
+            None,
+        )
+        owner_ace = next(
+            (ace for ace in sd.dacl.aces if str(ace.sid).startswith(str(sd.owner))),
+            other_ace,
+        )
+        group_ace = next(
+            (ace for ace in sd.dacl.aces if str(ace.sid).startswith(str(sd.group))),
+            other_ace,
+        )
 
         # Defines the masks used to check for the attributes
         attributes = {
-            'r': smb.smb_constants.FILE_READ_DATA \
-               & smb.smb_constants.FILE_READ_ATTRIBUTES,
-            'w': smb.smb_constants.FILE_WRITE_DATA \
-               & smb.smb_constants.FILE_WRITE_ATTRIBUTES,
-            'x': smb.smb_constants.FILE_EXECUTE,
+            "r": smb.smb_constants.FILE_READ_DATA
+            & smb.smb_constants.FILE_READ_ATTRIBUTES,
+            "w": smb.smb_constants.FILE_WRITE_DATA
+            & smb.smb_constants.FILE_WRITE_ATTRIBUTES,
+            "x": smb.smb_constants.FILE_EXECUTE,
         }
 
         # Defines the mask used for each mode
         other_mask = other_ace.mask if other_ace is not None else 0x0
         modes = {
-            'u': (owner_ace.mask if owner_ace is not None else 0x0) | other_mask,
-            'g': (group_ace.mask if group_ace is not None else 0x0) | other_mask,
-            'o': other_mask,
+            "u": (owner_ace.mask if owner_ace is not None else 0x0) | other_mask,
+            "g": (group_ace.mask if group_ace is not None else 0x0) | other_mask,
+            "o": other_mask,
         }
 
         # Create the permissions from a permission list
-        access['permissions'] = Permissions([
-            '{}_{}'.format(mode_name, attr_name)
+        access["permissions"] = Permissions(
+            [
+                "{}_{}".format(mode_name, attr_name)
                 for mode_name, mode_mask in modes.items()
-                    for attr_name, attr_mask in attributes.items()
-                        if attr_mask & mode_mask
-        ])
+                for attr_name, attr_mask in attributes.items()
+                if attr_mask & mode_mask
+            ]
+        )
 
         return access
 
@@ -207,25 +220,37 @@ class SMBFS(FS):
                 supported.
         """
         namespaces = namespaces or set()
-        info = {'basic': {'name': '', 'is_dir': True}}
-        if 'details' in namespaces:
-            info['details'] = {'type': ResourceType.directory, 'size': 0}
+        info = {"basic": {"name": "", "is_dir": True}}
+        if "details" in namespaces:
+            info["details"] = {"type": ResourceType.directory, "size": 0}
         return Info(info)
 
-    def __init__(self, host, username='guest', passwd='', timeout=15,
-                 port=None, name_port=137, direct_tcp=False, domain=''):  # noqa: D102
+    def __init__(
+        self,
+        host,
+        username="guest",
+        passwd="",
+        timeout=15,
+        port=None,
+        name_port=137,
+        direct_tcp=False,
+        domain="",
+    ):  # noqa: D102
         super(SMBFS, self).__init__()
 
         try:
             self._server_name, self._server_ip = utils.get_hostname_and_ip(
-                host, None if direct_tcp else self.NETBIOS,
+                host,
+                None if direct_tcp else self.NETBIOS,
                 timeout=timeout,
-                name_port=name_port
+                name_port=name_port,
             )
         except Exception as exc:
             six.raise_from(
-                errors.CreateFailed("could not get IP/host pair from '{}'".format(host)),
-                exc
+                errors.CreateFailed(
+                    "could not get IP/host pair from '{}'".format(host)
+                ),
+                exc,
             )
 
         self._timeout = timeout
@@ -237,14 +262,13 @@ class SMBFS(FS):
         self._domain = domain
         self._connect_kw = dict(timeout=self._timeout)
         if self._server_port is not None:
-            self._connect_kw['port'] = self._server_port
+            self._connect_kw["port"] = self._server_port
 
         try:
             self._smb = self._new_connection()
         except (IOError, OSError) as exc:
             six.raise_from(
-                errors.CreateFailed("could not connect to '{}'".format(host)),
-                exc
+                errors.CreateFailed("could not connect to '{}'".format(host)), exc
             )
 
         self._shares = {
@@ -275,7 +299,7 @@ class SMBFS(FS):
 
     else:
 
-        def close(self): # noqa: D102
+        def close(self):  # noqa: D102
             if not self.isclosed():
                 if hasattr(self, "_smb"):
                     self._smb.close()
@@ -284,7 +308,7 @@ class SMBFS(FS):
     def makedir(self, path, permissions=None, recreate=False):  # noqa: D102
         _path = self.validatepath(path)
 
-        if _path in '/':
+        if _path in "/":
             if not recreate:
                 raise errors.DirectoryExists(path)
 
@@ -293,8 +317,7 @@ class SMBFS(FS):
 
             # Check we are not creating a share
             if not smb_path and share not in self._shares:
-                raise errors.PermissionDenied(
-                    'cannot create share {}'.format(share))
+                raise errors.PermissionDenied("cannot create share {}".format(share))
             elif not smb_path and not recreate:
                 raise errors.DirectoryExists(path)
 
@@ -314,7 +337,7 @@ class SMBFS(FS):
 
         return self.opendir(_path)
 
-    def openbin(self, path, mode='r', buffering=-1, **options):  # noqa: D102
+    def openbin(self, path, mode="r", buffering=-1, **options):  # noqa: D102
         _path = self.validatepath(path)
         _mode = Mode(mode)
         _mode.validate_bin()
@@ -355,7 +378,7 @@ class SMBFS(FS):
                 raise errors.FileExpected(src_path)
 
         # Cannot rename across shares
-        if _src_share != _dst_share: # pragma: no cover
+        if _src_share != _dst_share:  # pragma: no cover
             return super(SMBFS, self).move(src_path, dst_path, overwrite=overwrite)
 
         # Check the parent of dst_path exists and is not a file
@@ -370,16 +393,13 @@ class SMBFS(FS):
         # Rename with PySMB
         with self.lock():
             self._smb.rename(
-                _src_share,
-                _src_smb_path,
-                _dst_smb_path,
-                timeout=self._timeout
+                _src_share, _src_smb_path, _dst_smb_path, timeout=self._timeout
             )
 
     def scandir(self, path, namespaces=None, page=None):  # noqa: D102
         _path = self.validatepath(path)
         namespaces = namespaces or ()
-        if _path in '/':
+        if _path in "/":
             iter_info = self._scanshares(namespaces)
         else:
             iter_info = self._scandir(path, namespaces)
@@ -409,12 +429,12 @@ class SMBFS(FS):
             devices = self._smb.listShares()
         for device in devices:
             if device.type == device.DISK_TREE:
-                if 'access' in namespaces:
-                    sd = self._get_security(device.name, '/')
+                if "access" in namespaces:
+                    sd = self._get_security(device.name, "/")
                 with self.lock():
-                    attr = self._smb.getAttributes(device.name, '/')
+                    attr = self._smb.getAttributes(device.name, "/")
                 info = self._make_info_from_shared_file(attr, sd, namespaces)
-                info.raw['basic']['name'] = device.name
+                info.raw["basic"]["name"] = device.name
                 yield info
 
     def _scandir(self, path, namespaces=None):
@@ -436,14 +456,10 @@ class SMBFS(FS):
         with self.lock():
             shared_files = self._smb.listPath(share, smb_path)
         for shared_file in shared_files:
-            if shared_file.filename not in '..':
-                if 'access' in namespaces:
-                    sd = self._get_security(
-                        share,
-                        join(smb_path, shared_file.filename)
-                    )
-                yield self._make_info_from_shared_file(
-                    shared_file, sd, namespaces)
+            if shared_file.filename not in "..":
+                if "access" in namespaces:
+                    sd = self._get_security(share, join(smb_path, shared_file.filename))
+                yield self._make_info_from_shared_file(shared_file, sd, namespaces)
 
     def remove(self, path):  # noqa: D102
         _path = self.validatepath(path)
@@ -456,7 +472,7 @@ class SMBFS(FS):
     def removedir(self, path):  # noqa: D102
         _path = self.validatepath(path)
 
-        if _path in '/':
+        if _path in "/":
             raise errors.RemoveRootError(path)
 
         if not self.getinfo(path).is_dir:
@@ -467,18 +483,21 @@ class SMBFS(FS):
 
         share, smb_path = utils.split_path(_path)
         if not smb_path:
-            raise errors.PermissionDenied(
-                msg="cannot remove share '{}'".format(share))
+            raise errors.PermissionDenied(msg="cannot remove share '{}'".format(share))
 
         with self.lock():
             self._smb.deleteDirectory(share, smb_path)
 
-    def geturl(self, path, purpose='download'):  # noqa: D102
+    def geturl(self, path, purpose="download"):  # noqa: D102
         _path = self.validatepath(path)
-        if purpose != 'download':
+        if purpose != "download":
             raise errors.NoURL(path, purpose)
-        return "smb://{}@{}:{}{}".format(
-            self._username, self._server_name, self._server_port, _path)
+        if self._server_port is None:
+            return "smb://{}@{}{}".format(self._username, self._server_name, _path)
+        else:
+            return "smb://{}@{}:{}{}".format(
+                self._username, self._server_name, self._server_port, _path
+            )
 
     def getinfo(self, path, namespaces=None):  # noqa: D102
         _path = self.validatepath(path)
@@ -501,12 +520,12 @@ class SMBFS(FS):
         except smb.smb_structs.OperationFailure:
             raise errors.ResourceNotFound(path)
 
-        if 'access' in namespaces:
+        if "access" in namespaces:
             sd = self._get_security(share, smb_path)
 
         info = self._make_info_from_shared_file(shared_file, sd, namespaces)
         if not smb_path:
-            info.raw['basic']['name'] = share
+            info.raw["basic"]["name"] = share
 
         return info
 
