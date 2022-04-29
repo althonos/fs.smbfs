@@ -365,7 +365,9 @@ class SMBFS(FS):
     def listdir(self, path):  # noqa: D102
         return [f.name for f in self.scandir(path)]
 
-    def move(self, src_path, dst_path, overwrite=False):  # noqa: D102
+    def move(
+        self, src_path, dst_path, overwrite=False, preserve_time=False
+    ):  # noqa: D102
         _src_path = self.validatepath(src_path)
         _dst_path = self.validatepath(dst_path)
 
@@ -379,7 +381,9 @@ class SMBFS(FS):
 
         # Cannot rename across shares
         if _src_share != _dst_share:  # pragma: no cover
-            return super(SMBFS, self).move(src_path, dst_path, overwrite=overwrite)
+            return super(SMBFS, self).move(
+                src_path, dst_path, overwrite=overwrite, preserve_time=preserve_time
+            )
 
         # Check the parent of dst_path exists and is not a file
         if not self.getinfo(dirname(dst_path)).is_dir:
