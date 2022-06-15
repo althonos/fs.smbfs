@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.5...HEAD
+
+
+## [v1.0.5] - 2022-06-15
+
+[v1.0.5]: https://github.com/althonos/fs.smbfs/compare/v1.0.4...v1.0.5
+
+### Added
+- Explicit support for `v1.2.8` of PySMB.
 
 
 ## [v1.0.4] - 2022-04-29
