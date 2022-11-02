@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/althonos/fs.smbfs/compare/v1.0.6...HEAD
+
+
+## [v1.0.6] - 2022-11-02
+
+[v1.0.6]: https://github.com/althonos/fs.smbfs/compare/v1.0.5...v1.0.6
+
+### Changed
+- Avoid scanning SMB shares unless interacting with the root of a `SMBFS` ([#37](https://github.com/althonos/fs.smbfs/issues/37)).
 
 
 ## [v1.0.5] - 2022-06-15
