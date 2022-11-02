@@ -271,12 +271,6 @@ class SMBFS(FS):
                 errors.CreateFailed("could not connect to '{}'".format(host)), exc
             )
 
-        self._shares = {
-            casefold(share.name)
-            for share in self._smb.listShares()
-            if share.type == share.DISK_TREE
-        }
-
     def _new_connection(self):
         con = smb.SMBConnection.SMBConnection(
             self._username,
@@ -316,7 +310,7 @@ class SMBFS(FS):
             share, smb_path = utils.split_path(_path)
 
             # Check we are not creating a share
-            if not smb_path and share not in self._shares:
+            if not smb_path and not self.exists(_path):
                 raise errors.PermissionDenied("cannot create share {}".format(share))
             elif not smb_path and not recreate:
                 raise errors.DirectoryExists(path)
@@ -512,11 +506,6 @@ class SMBFS(FS):
 
         if not share:
             return self._make_root_info(namespaces)
-        # Shares are case insensitive, however the lookup in python is not.
-        # This causes issues when looking for shares that exist, albeit with
-        # different casing.
-        elif casefold(share) not in self._shares:
-            raise errors.ResourceNotFound(path)
 
         try:
             with self.lock():
