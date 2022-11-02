@@ -13,10 +13,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v1
-    - name: Set up Python 3.9
+    - name: Set up Python 3.11
       uses: actions/setup-python@v1
       with:
-        python-version: 3.9
+        python-version: '3.11'
     - name: Install build package
       run: python -m pip install -U build
     - name: Build a wheel and source tarball
@@ -27,3 +27,17 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
+  release:
+    environment: GitHub Releases
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/v')"
+    name: Release
+    needs: package
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+    - name: Release a Changelog
+      uses: rasmus-saks/release-a-changelog-action@v1.0.1
+      with:
+        github-token: '${{ secrets.GITHUB_TOKEN }}'
