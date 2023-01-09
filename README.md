@@ -2,7 +2,7 @@
 
 [![Source](https://img.shields.io/badge/source-GitHub-303030.svg?logo=git&maxAge=36000&style=flat-square)](https://github.com/althonos/fs.smbfs)
 [![PyPI](https://img.shields.io/pypi/v/fs.smbfs.svg?logo=pypi&style=flat-square&maxAge=3600)](https://pypi.python.org/pypi/fs.smbfs)
-[![Actions](https://img.shields.io/github/workflow/status/althonos/fs.smbfs/Test/master?logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/fs.smbfs/actions)
+[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/fs.smbfs/test.yml?branch=master&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/fs.smbfs/actions)
 [![Codecov](https://img.shields.io/codecov/c/github/althonos/fs.smbfs/master.svg?logo=codecov&style=flat-square&maxAge=300)](https://codecov.io/gh/althonos/fs.smbfs)
 [![Codacy](https://img.shields.io/codacy/grade/82d40d17b4734692a9e70c5af5cc2a5b/master.svg?logo=codacy&style=flat-square&maxAge=300)](https://www.codacy.com/app/althonos/fs.smbfs/dashboard)
 [![License](https://img.shields.io/pypi/l/fs.smbfs.svg?style=flat-square&maxAge=300)](https://choosealicense.com/licenses/mit/)
