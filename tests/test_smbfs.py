@@ -17,7 +17,7 @@ import fs.path
 import fs.test
 from fs.enums import ResourceType
 from fs.subfs import ClosingSubFS
-from fs.smbfs import SMBFS
+from miarec_smbfs import SMBFS
 
 from . import utils
 from .utils import mock
@@ -28,7 +28,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
 
     def make_fs(self):
         self.dir = fs.path.join('data', uuid.uuid4().hex)
-        self.smbfs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        self.smbfs = fs.open_fs('msmb://rio:letsdance@127.0.0.1/')
         self.smbfs.makedirs(self.dir, recreate=True)
         return self.smbfs.opendir(self.dir, factory=ClosingSubFS)
 
@@ -37,22 +37,22 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         super(TestSMBFS, self).test_case_sensitive()
 
     def test_connection_error(self):
-        with utils.mock.patch('fs.smbfs.smbfs.SMBFS.NETBIOS') as n:
+        with utils.mock.patch('miarec_smbfs.smbfs.SMBFS.NETBIOS') as n:
             n.queryIPForName = utils.mock.MagicMock(return_value = ("TE"))
             self.assertRaises(
                 fs.errors.CreateFailed,
-                fs.open_fs, 'smb://8.8.8.8?timeout=1'
+                fs.open_fs, 'msmb://8.8.8.8?timeout=1'
             )
 
     def test_write_denied(self):
-        _fs = fs.open_fs('smb://127.0.0.1/data')
+        _fs = fs.open_fs('msmb://127.0.0.1/data')
         self.assertRaises(
             fs.errors.PermissionDenied,
             _fs.openbin, '/test.txt', 'w'
         )
 
     def test_openbin_root(self):
-        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('msmb://rio:letsdance@127.0.0.1/')
         self.assertRaises(
             fs.errors.ResourceNotFound,
             _fs.openbin, '/abc'
@@ -68,14 +68,14 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
             self.assertRaises(fs.errors.OperationFailed, self.fs.openbin, "abc")
 
     def test_makedir_root(self):
-        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('msmb://rio:letsdance@127.0.0.1/')
         self.assertRaises(
             fs.errors.PermissionDenied,
             _fs.makedir, '/abc'
         )
 
     def test_removedir_root(self):
-        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('msmb://rio:letsdance@127.0.0.1/')
 
         scandir = utils.mock.MagicMock(return_value=iter([]))
         with utils.mock.patch.object(_fs, 'scandir', scandir):
@@ -193,7 +193,7 @@ class TestSMBFS(fs.test.FSTestCases, unittest.TestCase):
         self.assertRaises(fs.errors.ResourceNotFound, self.fs.download, "/def/ghi", io.BytesIO())
 
     def test_upload_root(self):
-        _fs = fs.open_fs('smb://rio:letsdance@127.0.0.1/')
+        _fs = fs.open_fs('msmb://rio:letsdance@127.0.0.1/')
         self.assertRaises(fs.errors.PermissionDenied, _fs.upload, "/abc", io.BytesIO())
 
     def test_upload_error(self):

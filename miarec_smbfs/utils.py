@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Helper functions for `fs.smbfs`.
+"""Helper functions for `miarec_smbfs`.
 """
 from __future__ import absolute_import
 from __future__ import unicode_literals
@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import re
 import six
 
-from ..path import relpath
+from fs.path import relpath
 
 
 __all__ = ['split_path', 'is_ip']
@@ -41,7 +41,7 @@ def is_ip(token):
         ``is_ip("localhost")`` will return `True` !
 
     Example:
-        >>> from fs.smbfs.utils import is_ip
+        >>> from miarec_smbfs.utils import is_ip
         >>> is_ip('192.168.0.1')
         True
         >>> is_ip('github.com')

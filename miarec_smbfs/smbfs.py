@@ -14,13 +14,13 @@ import smb.SMBConnection
 import smb.smb_constants
 import smb.security_descriptors
 
-from .. import errors
-from ..base import FS
-from ..info import Info
-from ..mode import Mode
-from ..path import join, dirname
-from ..enums import ResourceType
-from ..permissions import Permissions
+from fs import errors
+from fs.base import FS
+from fs.info import Info
+from fs.mode import Mode
+from fs.path import join, dirname
+from fs.enums import ResourceType
+from fs.permissions import Permissions
 
 from . import utils
 from .file import SMBFile
@@ -61,7 +61,7 @@ class SMBFS(FS):
 
     Example:
         >>> import fs
-        >>> smb_fs = fs.open_fs('smb://SOMESERVER/share')
+        >>> smb_fs = fs.open_fs('msmb://SOMESERVER/share')
 
     """
 

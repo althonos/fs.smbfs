@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from fs.smbfs.file import _Cursor
+from miarec_smbfs.file import _Cursor
 
 
 class TestCursor(unittest.TestCase):

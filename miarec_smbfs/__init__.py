@@ -10,7 +10,7 @@ __all__ = ['SMBFS']
 
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2017-2021 Martin Larralde"
-__author__ = "Martin Larralde <martin.larralde@embl.de>"
+__author__ = "MiaREc <support@miarec.com>"
 __version__ = (
     __import__("pkg_resources")
     .resource_string(__name__, "_version.txt")

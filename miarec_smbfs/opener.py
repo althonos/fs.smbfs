@@ -8,17 +8,16 @@ import configparser
 
 import six
 
-from .base import Opener
-from .registry import registry
-from ..subfs import ClosingSubFS
-from ..errors import CreateFailed
+from fs.opener.base import Opener
+from fs.subfs import ClosingSubFS
+from fs.errors import CreateFailed
 
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2017-2021 Martin Larralde"
-__author__ = "Martin Larralde <martin.larralde@embl.de>"
+__author__ = "MiaRec <support@miarec.com>"
 __version__ = __version__ = (
     __import__("pkg_resources")
-    .resource_string("fs.smbfs", "_version.txt")
+    .resource_string("miarec_smbfs", "_version.txt")
     .strip()
     .decode("ascii")
 )
@@ -28,11 +27,11 @@ class SMBOpener(Opener):
     """`SMBFS` opener.
     """
 
-    protocols = ['smb', 'cifs']
+    protocols = ['msmb', 'mcifs']
 
     @staticmethod
     def open_fs(fs_url, parse_result, writeable, create, cwd):  # noqa: D102
-        from ..smbfs import SMBFS
+        from .smbfs import SMBFS
         smb_host, _, dir_path = parse_result.resource.partition('/')
         smb_host, _, smb_port = smb_host.partition(':')
         smb_port = int(smb_port) if smb_port.isdigit() else None
@@ -63,6 +62,3 @@ class SMBOpener(Opener):
                 return smb_fs
         except Exception as err:
             six.raise_from(CreateFailed, err)
-
-
-registry.install(SMBOpener)

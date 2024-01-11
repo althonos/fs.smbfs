@@ -8,9 +8,9 @@ import io
 
 import smb.smb_structs
 
-from .. import errors
-from ..path import join
-from ..enums import Seek
+from fs import errors
+from fs.path import join
+from fs.enums import Seek
 
 
 __all__ = ['SMBFile']

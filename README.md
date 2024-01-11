@@ -1,16 +1,17 @@
-# `fs.smbfs` [![star me](https://img.shields.io/github/stars/althonos/fs.smbfs.svg?style=social&maxAge=3600&label=Star)](https://github.com/althonos/fs.smbfs/stargazers)
+# `miarec_smbfs` SMB filesystem for PyFilesystem2
 
-[![Source](https://img.shields.io/badge/source-GitHub-303030.svg?logo=git&maxAge=36000&style=flat-square)](https://github.com/althonos/fs.smbfs)
-[![PyPI](https://img.shields.io/pypi/v/fs.smbfs.svg?logo=pypi&style=flat-square&maxAge=3600)](https://pypi.python.org/pypi/fs.smbfs)
-[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/fs.smbfs/test.yml?branch=master&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/fs.smbfs/actions)
-[![Codecov](https://img.shields.io/codecov/c/github/althonos/fs.smbfs/master.svg?logo=codecov&style=flat-square&maxAge=300)](https://codecov.io/gh/althonos/fs.smbfs)
-[![Codacy](https://img.shields.io/codacy/grade/82d40d17b4734692a9e70c5af5cc2a5b/master.svg?logo=codacy&style=flat-square&maxAge=300)](https://www.codacy.com/app/althonos/fs.smbfs/dashboard)
+This is a fork of [fs.smbfs](https://github.com/althonos/fs.smbfs)
+
+The code was modified by MiaRec team to fullfill our needs.
+
+[![Actions](https://img.shields.io/github/actions/workflow/status/miarec/miarec_smbfs/test.yml?branch=master&logo=github&style=flat-square&maxAge=300)](https://github.com/miarec/miarec_smbfs/actions)
 [![License](https://img.shields.io/pypi/l/fs.smbfs.svg?style=flat-square&maxAge=300)](https://choosealicense.com/licenses/mit/)
-[![Versions](https://img.shields.io/pypi/pyversions/fs.smbfs.svg?logo=python&style=flat-square&maxAge=300)](https://pypi.org/project/fs.smbfs)
-[![Format](https://img.shields.io/pypi/format/fs.smbfs.svg?style=flat-square&maxAge=300)](https://pypi.python.org/pypi/fs.smbfs)
-[![GitHub issues](https://img.shields.io/github/issues/althonos/fs.smbfs.svg?style=flat-square&maxAge=600)](https://github.com/althonos/fs.smbfs/issues)
-[![Downloads](https://img.shields.io/badge/dynamic/json?style=flat-square&color=303f9f&maxAge=86400&label=downloads&query=%24.total_downloads&url=https%3A%2F%2Fapi.pepy.tech%2Fapi%2Fprojects%2Ffs.smbfs)](https://pepy.tech/project/fs.smbfs)
-[![Changelog](https://img.shields.io/badge/keep%20a-changelog-8A0707.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/fs.smbfs/blob/master/CHANGELOG.md)
+
+## Notable differences between miarec_s3fs and fs-s3fs
+
+1. Requires Python 3.7+. A support of older version of Python was removed.
+
+2. The opener protocol prefix is `msmb://` (instead of the original `smb://`)
 
 
 ## Requirements
@@ -20,12 +21,14 @@
 | **six** | [![PyPI six](https://img.shields.io/pypi/v/six.svg?maxAge=300&style=flat-square)](https://pypi.python.org/pypi/six) | [![Source six]( https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=36000&style=flat-square )]( https://github.com/benjaminp/six) | [![License six](https://img.shields.io/pypi/l/six.svg?maxAge=36000&style=flat-square)](https://choosealicense.com/licenses/mit/) |
 | **PySMB** | [![PyPI pysmb](https://img.shields.io/pypi/v/pysmb.svg?maxAge=300&style=flat-square)](https://pypi.python.org/pypi/pysmb) | [![Source pysmb]( https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=36000&style=flat-square )]( https://github.com/miketeo/pysmb) | [![License pysmb](https://img.shields.io/pypi/l/pysmb.svg?maxAge=36000&style=flat-square)](https://choosealicense.com/licenses/zlib/) |
 
+`miarec_smbfs` supports Python versions 3.7+ 
+
 ## Installation
 
 Install directly from PyPI, using [pip](https://pip.pypa.io/) :
 
 ```console
-$ pip install fs.smbfs
+$ pip install miarec_smbfs
 ```
 
 ## Usage
@@ -37,7 +40,7 @@ URL](https://pyfilesystem2.readthedocs.io/en/latest/openers.html):
 
 ```python
 import fs
-smb_fs = fs.open_fs('smb://username:password@SAMBAHOSTNAME:port/share')
+smb_fs = fs.open_fs('msmb://username:password@SAMBAHOSTNAME:port/share')
 ```
 
 The opener can use either an IPv4 address or a NetBIOS hostname, using the
@@ -53,8 +56,8 @@ The following parameters can be passed as URL parameters: `timeout`,
 ### Constructor
 
 ```python
-import fs.smbfs
-smb_fs = fs.smbfs.SMBFS(
+import miarec_smbfs
+smb_fs = miarec_smbfs.SMBFS(
     host, username="guest", passwd="", timeout=15,
     port=139, name_port=137, direct_tcp=False, domain=""
 )
@@ -83,37 +86,31 @@ except if it was open in the root directory of the server, in which case the
 root directory of the `SMBFS` instance will be read-only (since SMB clients
 cannot create new shares).
 
-## Feedback
+## Testing
 
-Found a bug ? Have an enhancement request ? Head over to the [GitHub
-issue tracker](https://github.com/althonos/fs.smbfs/issues) of the
-project if you need to report or ask something. If you are filling in on
-a bug, please include as much information as you can about the issue,
-and try to recreate the same bug in a simple, easily reproducible
-situation.
+Automated unit tests are run on [GitHub Actions](https://github.com/miarec/miarec_smbfs/actions)
 
+To run the tests locally, do the following.
+
+Install Docker on local machine.
+
+Create activate python virtual environment:
+
+    python -m vevn venv
+    source venv\bin\activate
+
+Install the project and test dependencies:
+
+    pip install -e ".[test]"
+
+Run tests:
+
+    pytest
 
 ## Credits
 
-`fs.smbfs` is developed and maintained by:
+`miarec_smbfs` is developed and maintained by [MiaRec](https://www.miarec.com)
+
+The original code (`fs.smbfs`) was developed by:
 - [Martin Larralde](https://github.com/althonos)
 
-The following people contributed to `fs.sshfs`:
-- [Mike DePalatis](https://github.com/mivade)
-- [Isaac Jackson](https://github.com/Vegemash)
-- [Max Klein](https://github.com/telamonian)
-- [Francesco Frassinelli](https://github.com/frafra)
-- [Josiah Witheford](https://github.com/josiahwitheford)
-
-This project obviously owes a lot to the PyFilesystem2 project and
-[all its contributors](https://github.com/PyFilesystem/pyfilesystem2/blob/master/CONTRIBUTORS.md).
-
-
-## See also
-
--   [fs](https://github.com/Pyfilesystem/pyfilesystem2), the core
-    Pyfilesystem2 library
--   [fs.archive](https://github.com/althonos/fs.archive), enhanced
-    archive filesystems for Pyfilesystem2
--   [fs.sshfs](https://github.com/althonos/fs.sshfs), Pyfilesystem2 over
-    SSH using paramiko
