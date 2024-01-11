@@ -20,7 +20,7 @@ def split_path(path):
     """Split a SMBFS path into a share name and a path component.
 
     Example:
-        >>> from fs.smbfs.utils import split_path
+        >>> from miarec_smbfs.utils import split_path
         >>> split_path('/share/path/to/resource')
         ('share', 'path/to/resource')
         >>> split_path('/share')
@@ -54,7 +54,7 @@ def get_hostname_and_ip(host, netbios, timeout=15, name_port=137):
     """Get the IP and hostnames from the given token.
 
     Example:
-        >>> from fs.smbfs.utils import get_hostname_and_ip as ghip
+        >>> from miarec_smbfs.utils import get_hostname_and_ip as ghip
         >>> from nmb.NetBIOS import NetBIOS
         >>> nb = NetBIOS()
         >>> ghip("SAMBAALPINE", nb)

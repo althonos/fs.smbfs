@@ -6,6 +6,7 @@ import unittest
 
 import fs.errors
 import fs.path
+import fs
 from miarec_smbfs import SMBFS
 from semantic_version import Version
 
